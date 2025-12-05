@@ -1,24 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { convertFileSrc } from '@tauri-apps/api/core';
+import { readFile } from '@tauri-apps/plugin-fs';
 import ContributionGraph from './ContributionGraph';
 import { Settings, LogOut, Activity, Flame, Zap, Film } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { doc, getDoc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { auth, db, storage } from '../firebase';
+import { doc, getDoc, setDoc, updateDoc, collection, addDoc, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { invoke } from '@tauri-apps/api/core';
 
 interface Commit {
+  id?: string;
   path: string;
   thumbnail_path: string;
   timestamp: number;
+  thumbnail_url?: string;
 }
 
 interface UserData {
   xp: number;
   streak: number;
   lastCommitDate: string | null;
-  commits: Commit[];
 }
 
 const Dashboard: React.FC = () => {
@@ -41,63 +44,43 @@ const Dashboard: React.FC = () => {
     console.log("Is Tauri environment:", isTauriCheck);
   }, []);
 
-  // Fetch initial data
+  // Real-time Listeners
   useEffect(() => {
-    const fetchData = async () => {
-      let retries = 3;
-      while (retries > 0) {
-        try {
+    if (!user) return;
 
-          
-          if (!user) return;
-          const userDocRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userDocRef);
+    const userDocRef = doc(db, "users", user.uid);
+    const commitsQuery = query(collection(db, "users", user.uid, "commits"), orderBy("timestamp", "desc"));
 
-          if (userDoc.exists()) {
-            const data = userDoc.data() as UserData;
+    // Listener for User Stats
+    const unsubUser = onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data() as UserData;
             setXp(data.xp || 0);
             setStreak(data.streak || 0);
-            setCommits(data.commits || []);
-            
-            // Calculate heatmap from commits
-            const counts: { [key: string]: number } = {};
-            (data.commits || []).forEach(c => {
-              const date = new Date(c.timestamp * 1000).toISOString().split('T')[0];
-              counts[date] = (counts[date] || 0) + 1;
-            });
-            setHeatmapValues(Object.entries(counts).map(([date, count]) => ({ date, count })));
-          } else {
-            // Initialize new user
-            await setDoc(userDocRef, {
-              xp: 0,
-              streak: 0,
-              lastCommitDate: null,
-              commits: []
-            });
-          }
-          // Success, break loop
-          break;
-        } catch (e: any) {
-          console.error(`Firebase fetch errorAttempt ${4 - retries}:`, e);
-          
-          if (e.code === 'unavailable' && retries > 1) {
-             console.log("Client offline, retrying in 1s...");
-             await new Promise(resolve => setTimeout(resolve, 1000));
-             retries--;
-             continue;
-          }
-
-          console.error("Firebase fetch error FULL:", e);
-          console.error("Firebase error code:", e.code);
-          console.error("Firebase error message:", e.message);
-          alert(`Firebase Error (${e.code}): ${e.message}`);
-          break; // Don't retry other errors
+        } else {
+             // Initialize new user if needed, or handle in a separate init logic
+             setDoc(userDocRef, { xp: 0, streak: 0, lastCommitDate: null }).catch(console.error);
         }
-      }
+    });
 
+    // Listener for Commits
+    const unsubCommits = onSnapshot(commitsQuery, (snapshot) => {
+        const fetchedCommits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Commit));
+        setCommits(fetchedCommits);
+
+        // Recalculate Heatmap
+        const counts: { [key: string]: number } = {};
+        fetchedCommits.forEach(c => {
+            const date = new Date(c.timestamp * 1000).toISOString().split('T')[0];
+            counts[date] = (counts[date] || 0) + 1;
+        });
+        setHeatmapValues(Object.entries(counts).map(([date, count]) => ({ date, count })));
+    });
+
+    return () => {
+        unsubUser();
+        unsubCommits();
     };
-
-    fetchData();
   }, [user]);
 
   // Listen for new commits
@@ -115,49 +98,65 @@ const Dashboard: React.FC = () => {
 
     let unlistenFn: (() => void) | undefined;
 
-    const setupListener = async () => {
-      try {
-        console.log("Attempting to listen to 'thumbnail-generated'...");
-        unlistenFn = await listen('thumbnail-generated', async (event: any) => {
-          const payload = event.payload;
-          console.log('Thumbnail generated:', payload);
-          
-          const newCommit: Commit = {
-            path: payload.original_file,
-            thumbnail_path: payload.thumbnail_path,
-            timestamp: payload.timestamp,
-          };
+const setupListener = async () => {
+    try {
+      console.log("Attempting to listen to 'thumbnail-generated'...");
+      
+      unlistenFn = await listen('thumbnail-generated', async (event: any) => {
+        const payload = event.payload;
+        console.log('Thumbnail generated:', payload);
+        
+        // ✅ FIX: Define 'today' at the very top level of the callback
+        // This ensures it is visible to ALL try/catch blocks below
+        const today = new Date().toISOString().split('T')[0];
 
-          // Optimistic update
-          setCommits((prev) => [newCommit, ...prev]);
-          setXp((prev) => prev + 100); 
+        // --- 1. Upload to Storage ---
+        let downloadURL = "";
+        try {
+          console.log("Reading thumbnail file:", payload.thumbnail_path);
+          const fileBytes = await readFile(payload.thumbnail_path);
           
-          const today = new Date().toISOString().split('T')[0];
+          const storageRef = ref(storage, `users/${user.uid}/thumbnails/${payload.timestamp}_${payload.thumbnail_path.split(/[\\/]/).pop()}`);
           
-          // Update heatmap locally
-          setHeatmapValues((prev) => {
-            const existing = prev.find((v) => v.date === today);
-            if (existing) {
-              return prev.map((v) => v.date === today ? { ...v, count: v.count + 1 } : v);
-            } else {
-              return [...prev, { date: today, count: 1 }];
-            }
-          });
+          await uploadBytes(storageRef, fileBytes);
+          downloadURL = await getDownloadURL(storageRef);
+          console.log("Upload success, URL:", downloadURL);
+        } catch (uploadErr) {
+          console.error("Failed to upload thumbnail:", uploadErr);
+          // We continue even if upload fails, just without a URL
+        }
 
-          // Firestore Update
+        const newCommit: Commit = {
+          path: payload.original_file,
+          thumbnail_path: payload.thumbnail_path,
+          timestamp: payload.timestamp,
+          thumbnail_url: downloadURL
+        };
+
+        // --- 2. Update Firestore ---
+        try {
+          // Add Commit to Sub-collection
+          await addDoc(collection(db, "users", user.uid, "commits"), newCommit);
+
+          // Get User Stats
           const userDocRef = doc(db, "users", user.uid);
           const userDoc = await getDoc(userDocRef);
+          
           let currentStreak = 0;
           let lastDate = null;
+          let currentXP = 0;
 
           if (userDoc.exists()) {
             const data = userDoc.data() as UserData;
             currentStreak = data.streak || 0;
             lastDate = data.lastCommitDate;
+            currentXP = data.xp || 0;
           }
 
           // Streak Logic
           let newStreak = currentStreak;
+          
+          // Check if we have already committed today to avoid double counting streak
           if (lastDate !== today) {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
@@ -166,22 +165,26 @@ const Dashboard: React.FC = () => {
             if (lastDate === yesterdayStr) {
               newStreak += 1;
             } else {
-              newStreak = 1; // Reset or start new
+              newStreak = 1; // Reset streak if missed a day
             }
           }
-          setStreak(newStreak);
-
+          
+          // Update User Doc
           await updateDoc(userDocRef, {
-            xp: (userDoc.data()?.xp || 0) + 100,
+            xp: currentXP + 100,
             streak: newStreak,
-            lastCommitDate: today,
-            commits: arrayUnion(newCommit)
+            lastCommitDate: today // ✅ 'today' is now guaranteed to be defined
           });
-        });
-      } catch (err) {
-        console.error("Failed to setup listener:", err);
-      }
-    };
+          
+          console.log("Commit saved effectively!");
+        } catch (dbError) {
+           console.error("Failed to save commit to Firestore:", dbError);
+        }
+      });
+    } catch (err) {
+      console.error("Failed to setup listener:", err);
+    }
+  };
 
     setupListener();
 
@@ -318,12 +321,18 @@ const Dashboard: React.FC = () => {
       <div className="bg-gray-800 p-6 rounded-xl shadow-lg">
         <h2 className="text-xl font-semibold mb-4">Recent Commits</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {commits.map((commit, index) => (
+          {commits.map((commit, index) => {
+            console.log(`Commit ${index}:`, commit);
+            return (
             <div key={index} className="bg-gray-700 rounded-lg overflow-hidden group relative">
               <img 
-                src={isTauri ? convertFileSrc(commit.thumbnail_path) : "https://placehold.co/400x300?text=Web+View"} 
+                src={commit.thumbnail_url || (isTauri ? convertFileSrc(commit.thumbnail_path) : "https://placehold.co/400x300?text=Web+View")} 
                 alt="Thumbnail" 
                 className="w-full h-32 object-cover"
+                onError={(e) => {
+                  console.error("Image load failed:", commit.path);
+                  e.currentTarget.src = "https://placehold.co/400x300?text=Broken+Link";
+                }}
               />
               <div className="p-2">
                 <p className="text-xs text-gray-300 truncate" title={commit.path}>
@@ -334,7 +343,8 @@ const Dashboard: React.FC = () => {
                 </p>
               </div>
             </div>
-          ))}
+          );
+          })}
           {commits.length === 0 && (
             <p className="text-gray-500 col-span-full text-center py-8">
               No commits yet. Start drawing!

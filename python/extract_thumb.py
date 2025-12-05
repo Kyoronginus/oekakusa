@@ -66,8 +66,24 @@ def extract_thumbnail(clip_file_path, output_dir):
                     pass
 
         if image_data:
-            with open(output_path, 'wb') as f:
-                f.write(image_data)
+            try:
+                from PIL import Image
+                import io
+                
+                image = Image.open(io.BytesIO(image_data))
+                # Resize to max 400x400, preserving aspect ratio
+                image.thumbnail((400, 400))
+                image.save(output_path, "PNG")
+            except ImportError:
+                # Fallback if Pillow is not installed
+                with open(output_path, 'wb') as f:
+                    f.write(image_data)
+            except Exception as e:
+                 # Fallback on resize error
+                print(f"Resize failed: {e}", file=sys.stderr)
+                with open(output_path, 'wb') as f:
+                    f.write(image_data)
+                    
             return {
                 "status": "success",
                 "original_file": clip_file_path,

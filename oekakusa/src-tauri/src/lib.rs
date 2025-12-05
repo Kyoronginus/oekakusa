@@ -40,7 +40,7 @@ fn update_watch_paths(
     for path_str in paths {
         let path = PathBuf::from(path_str);
         if path.exists() {
-             let _ = watcher.watch(&path, RecursiveMode::Recursive);
+            let _ = watcher.watch(&path, RecursiveMode::Recursive);
         }
     }
 
@@ -86,10 +86,22 @@ fn update_watch_paths(
                                         let stdout = String::from_utf8_lossy(&o.stdout);
                                         println!("Python output: {}", stdout);
 
-                                        if let Ok(json) =
+                                        if let Ok(mut json) =
                                             serde_json::from_str::<serde_json::Value>(&stdout)
                                         {
                                             if json["status"] == "success" {
+                                                // Canonicalize path to remove ../ which Tauri fs plugin rejects
+                                                if let Some(path_str) = json["thumbnail_path"].as_str() {
+                                                     if let Ok(canon_path) = fs::canonicalize(path_str) {
+                                                         // Remove UNC prefix on Windows (\\?\)
+                                                         let mut clean_path = canon_path.to_string_lossy().to_string();
+                                                         if clean_path.starts_with("\\\\?\\") {
+                                                             clean_path = clean_path[4..].to_string();
+                                                         }
+                                                         json["thumbnail_path"] = serde_json::Value::String(clean_path);
+                                                     }
+                                                }
+
                                                 let _ =
                                                     app_handle.emit("thumbnail-generated", &json);
                                             }
@@ -162,13 +174,18 @@ fn export_gif(image_paths: Vec<String>) -> Result<String, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .manage(WatcherState {
             watcher: Mutex::new(None),
         })
-        .invoke_handler(tauri::generate_handler![greet, update_watch_paths, export_gif])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            update_watch_paths,
+            export_gif
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
