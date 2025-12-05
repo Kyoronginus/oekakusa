@@ -5,3 +5,6 @@
 *.clip
 thumbnails/
 gifs/
+
+#oekakusa
+oekakusa/.env

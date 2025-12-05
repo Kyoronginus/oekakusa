@@ -11,7 +11,14 @@ const Settings: React.FC = () => {
     const [paths, setPaths] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [isTauri, setIsTauri] = useState(false);
+
     const user = auth.currentUser;
+    
+    useEffect(() => {
+        // @ts-ignore
+        setIsTauri(!!(window.__TAURI__ || window.__TAURI_INTERNALS__));
+    }, []);
 
     useEffect(() => {
         const loadSettings = async () => {
@@ -23,7 +30,9 @@ const Settings: React.FC = () => {
                     if (data.watchPaths) {
                         setPaths(data.watchPaths);
                          // Sync backend just in case
-                        await invoke('update_watch_paths', { paths: data.watchPaths });
+                        if (isTauri) {
+                            await invoke('update_watch_paths', { paths: data.watchPaths });
+                        }
                     }
                 }
             } catch (e) {
@@ -33,9 +42,13 @@ const Settings: React.FC = () => {
             }
         };
         loadSettings();
-    }, [user]);
+    }, [user, isTauri]);
 
     const handleAddFolder = async () => {
+        if (!isTauri) {
+            alert("File picking is only available in the Tauri desktop app.");
+            return;
+        }
         try {
             const selected = await open({
                 directory: true,
@@ -55,6 +68,10 @@ const Settings: React.FC = () => {
     };
 
     const handleAddFile = async () => {
+        if (!isTauri) {
+             alert("File picking is only available in the Tauri desktop app.");
+             return;
+        }
         try {
             const selected = await open({
                 directory: false,
@@ -91,7 +108,9 @@ const Settings: React.FC = () => {
             }, { merge: true });
 
             // 2. Update Rust Backend
-            await invoke('update_watch_paths', { paths });
+            if (isTauri) {
+                await invoke('update_watch_paths', { paths });
+            }
             
             alert('Settings saved and watchers updated!');
         } catch (e) {

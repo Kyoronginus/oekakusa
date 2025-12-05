@@ -207,6 +207,10 @@ const Dashboard: React.FC = () => {
   const handleExportGif = async () => {
     setGifLoading(true);
     try {
+      if (!isTauri) {
+        alert("GIF Export is only available in Tauri desktop app.");
+        return;
+      }
       const imagePaths = [...commits]
         .sort((a, b) => a.timestamp - b.timestamp)
         .map(c => c.thumbnail_path);
@@ -226,7 +230,6 @@ const Dashboard: React.FC = () => {
       setGifLoading(false);
     }
   };
-
 
 
   return (
@@ -318,7 +321,7 @@ const Dashboard: React.FC = () => {
           {commits.map((commit, index) => (
             <div key={index} className="bg-gray-700 rounded-lg overflow-hidden group relative">
               <img 
-                src={convertFileSrc(commit.thumbnail_path)} 
+                src={isTauri ? convertFileSrc(commit.thumbnail_path) : "https://placehold.co/400x300?text=Web+View"} 
                 alt="Thumbnail" 
                 className="w-full h-32 object-cover"
               />
