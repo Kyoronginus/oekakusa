@@ -1,3 +1,5 @@
-oekakusa/.vscode
-oekakusa/node_modules
-Illustration2bu.clip
+.Illustration2bu.clip
+.oekakusa/vscode
+.oekakusa/node_modules
+.oekakusa/src-tauri/target
+*.clip
