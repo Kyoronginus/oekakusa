@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Film } from 'lucide-react';
-import { convertFileSrc } from '@tauri-apps/api/core';
+import { convertFileSrc, invoke } from '@tauri-apps/api/core';
 import { Commit } from '../../hooks/useDashboardData';
-import { invoke } from '@tauri-apps/api/core';
+import { writeFile, mkdir } from '@tauri-apps/plugin-fs';
+import { appCacheDir, join } from '@tauri-apps/api/path';
+import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 
 interface ExportGifModalProps {
   isOpen: boolean;
@@ -13,6 +16,7 @@ interface ExportGifModalProps {
 
 const ExportGifModal: React.FC<ExportGifModalProps> = ({ isOpen, onClose, commits, isTauri }) => {
   const [exportingPath, setExportingPath] = useState<string | null>(null);
+  const [progressMsg, setProgressMsg] = useState<string>("");
 
   // Group commits by file path
   const projects = React.useMemo(() => {
@@ -30,11 +34,16 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({ isOpen, onClose, commit
     return Array.from(map.values());
   }, [commits]);
 
+  console.log("ExportGifModal Rendered. isOpen:", isOpen, "Projects:", projects.length);
+
   if (!isOpen) return null;
 
   const handleExportGif = async (commitsToExport: Commit[], projectPath: string) => {
-    if (exportingPath) return; // Prevent multiple clicks
+    // ... existing handleExportGif content ...
+    console.log("Export GIF clicked for:", projectPath);
+    if (exportingPath) return; 
     setExportingPath(projectPath);
+    setProgressMsg("Preparing...");
     
     try {
       if (!isTauri) {
@@ -42,31 +51,78 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({ isOpen, onClose, commit
         return;
       }
       
-      const imagePaths = [...commitsToExport]
-        .sort((a, b) => a.timestamp - b.timestamp)
-        .map(c => c.thumbnail_path);
-
-      if (imagePaths.length === 0) {
+      const sortedCommits = [...commitsToExport].sort((a, b) => a.timestamp - b.timestamp);
+      
+      if (sortedCommits.length === 0) {
         alert("No commits to export!");
         return;
       }
 
-      console.log(`Exporting GIF for ${projectPath} with ${imagePaths.length} frames.`);
-      const result = await invoke('export_gif', { imagePaths });
+      // Download images to Cache Directory
+      const downloadedPaths: string[] = [];
+      const cacheDir = await appCacheDir();
+      const tempDir = await join(cacheDir, "gif_temp");
+      
+      // Ensure temp dir exists
+      try {
+        await mkdir(tempDir, { recursive: true });
+      } catch (e) {
+        console.warn("Dir creation error (migth exist):", e);
+      }
+
+      for (let i = 0; i < sortedCommits.length; i++) {
+        const commit = sortedCommits[i];
+        setProgressMsg(`Downloading frame ${i + 1}/${sortedCommits.length}...`);
+        
+        // Prefer URL, fallback to local path if URL missing (unlikely if uploaded)
+        if (commit.thumbnail_url) {
+           try {
+             console.log(`Downloading: ${commit.thumbnail_url}`);
+             const response = await tauriFetch(commit.thumbnail_url);
+             const blob = await response.blob();
+             const buffer = await blob.arrayBuffer();
+             const fileName = `${commit.timestamp}_${i}.png`; // Unique name
+             const filePath = await join(tempDir, fileName);
+             
+             await writeFile(filePath, new Uint8Array(buffer));
+             downloadedPaths.push(filePath);
+           } catch (err) {
+             console.error(`Failed to download ${commit.thumbnail_url}:`, err);
+             // Fallback?
+             downloadedPaths.push(commit.thumbnail_path);
+           }
+        } else {
+           console.log("No URL, using local path:", commit.thumbnail_path);
+           downloadedPaths.push(commit.thumbnail_path);
+        }
+      }
+
+      // Filter out invalid paths?
+      if (downloadedPaths.length === 0) {
+        throw new Error("No images could be prepared for GIF.");
+      }
+
+      setProgressMsg(`Generating GIF with ${downloadedPaths.length} frames...`);
+      console.log(`Exporting GIF for ${projectPath} with paths:`, downloadedPaths);
+      
+      const result = await invoke('export_gif', { imagePaths: downloadedPaths });
+      console.log("Export result:", result);
       alert(`GIF Exported Successfully to:\n${result}`);
       onClose();
+
     } catch (error) {
-      console.error(error);
+      console.error("Export Failed:", error);
       alert(`Failed to export GIF: ${error}`);
     } finally {
       setExportingPath(null);
+      setProgressMsg("");
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl border border-gray-700">
-        <div className="p-6 border-b border-gray-700 flex justify-between items-center">
+  return createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999] p-4 text-white">
+      <div className="bg-gray-800 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl border border-gray-700 relative">
+        <div className="p-6 border-b border-gray-700 flex justify-between items-center bg-gray-800">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <Film className="text-purple-400" /> Export GIF Timelapse
           </h2>
@@ -79,7 +135,7 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({ isOpen, onClose, commit
           </button>
         </div>
         
-        <div className="p-6 overflow-y-auto">
+        <div className="p-6 overflow-y-auto bg-gray-800">
           <p className="text-gray-300 mb-4">Select an illustration project to generate a timelapse GIF:</p>
           
           <div className="grid grid-cols-1 gap-4">
@@ -114,7 +170,7 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({ isOpen, onClose, commit
                      {isExportingThis ? (
                        <>
                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                         Processing...
+                         {progressMsg || 'Processing...'}
                        </>
                      ) : (
                        'Create GIF'
@@ -139,7 +195,8 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({ isOpen, onClose, commit
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

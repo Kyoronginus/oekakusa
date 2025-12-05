@@ -91,15 +91,23 @@ fn update_watch_paths(
                                         {
                                             if json["status"] == "success" {
                                                 // Canonicalize path to remove ../ which Tauri fs plugin rejects
-                                                if let Some(path_str) = json["thumbnail_path"].as_str() {
-                                                     if let Ok(canon_path) = fs::canonicalize(path_str) {
-                                                         // Remove UNC prefix on Windows (\\?\)
-                                                         let mut clean_path = canon_path.to_string_lossy().to_string();
-                                                         if clean_path.starts_with("\\\\?\\") {
-                                                             clean_path = clean_path[4..].to_string();
-                                                         }
-                                                         json["thumbnail_path"] = serde_json::Value::String(clean_path);
-                                                     }
+                                                if let Some(path_str) =
+                                                    json["thumbnail_path"].as_str()
+                                                {
+                                                    if let Ok(canon_path) =
+                                                        fs::canonicalize(path_str)
+                                                    {
+                                                        // Remove UNC prefix on Windows (\\?\)
+                                                        let mut clean_path = canon_path
+                                                            .to_string_lossy()
+                                                            .to_string();
+                                                        if clean_path.starts_with("\\\\?\\") {
+                                                            clean_path =
+                                                                clean_path[4..].to_string();
+                                                        }
+                                                        json["thumbnail_path"] =
+                                                            serde_json::Value::String(clean_path);
+                                                    }
                                                 }
 
                                                 let _ =
@@ -174,6 +182,7 @@ fn export_gif(image_paths: Vec<String>) -> Result<String, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
