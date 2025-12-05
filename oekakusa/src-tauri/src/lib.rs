@@ -1,11 +1,11 @@
-use tauri::{AppHandle, Emitter, Manager, State};
 use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
-use std::sync::Mutex;
+use std::collections::HashMap;
+use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
+use std::sync::Mutex;
 use std::time::{Duration, Instant};
-use std::fs;
-use std::collections::HashMap;
+use tauri::{AppHandle, Emitter, Manager, State};
 
 struct WatcherState {
     watcher: Mutex<Option<RecommendedWatcher>>,
@@ -17,32 +17,32 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn start_watching(
+fn update_watch_paths(
     app: AppHandle,
     state: State<'_, WatcherState>,
-    path: String,
+    paths: Vec<String>,
 ) -> Result<(), String> {
     let mut watcher_guard = state.watcher.lock().map_err(|e| e.to_string())?;
-    
-    // Reset watcher if it exists
+
+    // Reset watcher (stop monitoring old paths)
     if watcher_guard.is_some() {
         *watcher_guard = None;
     }
 
-    let app_handle = app.clone();
-    let target_path = PathBuf::from(path.clone());
-
-    if !target_path.exists() {
-        return Err("Target path does not exist".to_string());
+    if paths.is_empty() {
+        return Ok(());
     }
 
+    let app_handle = app.clone();
     let (tx, rx) = std::sync::mpsc::channel();
-    
-    let mut watcher = RecommendedWatcher::new(tx, Config::default())
-        .map_err(|e| e.to_string())?;
+    let mut watcher = RecommendedWatcher::new(tx, Config::default()).map_err(|e| e.to_string())?;
 
-    watcher.watch(&target_path, RecursiveMode::Recursive)
-        .map_err(|e| e.to_string())?;
+    for path_str in paths {
+        let path = PathBuf::from(path_str);
+        if path.exists() {
+             let _ = watcher.watch(&path, RecursiveMode::Recursive);
+        }
+    }
 
     *watcher_guard = Some(watcher);
 
@@ -64,11 +64,11 @@ fn start_watching(
                             last_processed.insert(path.clone(), now);
 
                             println!("Detected change in: {:?}", path);
-                            
+
                             let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
                             let python_script = manifest_dir.join("../../python/extract_thumb.py");
                             let output_dir = manifest_dir.join("../../thumbnails");
-                            
+
                             if !output_dir.exists() {
                                 let _ = fs::create_dir_all(&output_dir);
                             }
@@ -85,10 +85,13 @@ fn start_watching(
                                     if o.status.success() {
                                         let stdout = String::from_utf8_lossy(&o.stdout);
                                         println!("Python output: {}", stdout);
-                                        
-                                        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&stdout) {
+
+                                        if let Ok(json) =
+                                            serde_json::from_str::<serde_json::Value>(&stdout)
+                                        {
                                             if json["status"] == "success" {
-                                                let _ = app_handle.emit("thumbnail-generated", &json);
+                                                let _ =
+                                                    app_handle.emit("thumbnail-generated", &json);
                                             }
                                         }
                                     } else {
@@ -102,7 +105,7 @@ fn start_watching(
                             }
                         }
                     }
-                },
+                }
                 Err(e) => println!("watch error: {:?}", e),
             }
         }
@@ -116,7 +119,7 @@ fn export_gif(image_paths: Vec<String>) -> Result<String, String> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let python_script = manifest_dir.join("../../python/create_gif.py");
     let output_dir = manifest_dir.join("../../gifs");
-    
+
     if !output_dir.exists() {
         let _ = fs::create_dir_all(&output_dir);
     }
@@ -143,7 +146,10 @@ fn export_gif(image_paths: Vec<String>) -> Result<String, String> {
             if json["status"] == "success" {
                 return Ok(output_path_str);
             } else {
-                return Err(json["message"].as_str().unwrap_or("Unknown error").to_string());
+                return Err(json["message"]
+                    .as_str()
+                    .unwrap_or("Unknown error")
+                    .to_string());
             }
         }
         Ok(output_path_str) // Fallback
@@ -156,10 +162,13 @@ fn export_gif(image_paths: Vec<String>) -> Result<String, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
-        .manage(WatcherState { watcher: Mutex::new(None) })
-        .invoke_handler(tauri::generate_handler![greet, start_watching, export_gif])
+        .manage(WatcherState {
+            watcher: Mutex::new(None),
+        })
+        .invoke_handler(tauri::generate_handler![greet, update_watch_paths, export_gif])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

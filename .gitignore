@@ -3,3 +3,5 @@
 .oekakusa/node_modules
 .oekakusa/src-tauri/target
 *.clip
+thumbnails/
+gifs/

@@ -27,7 +27,7 @@ const Dashboard: React.FC = () => {
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
   const [heatmapValues, setHeatmapValues] = useState<{ date: string; count: number }[]>([]);
-  const [loading, setLoading] = useState(true);
+
   const [gifLoading, setGifLoading] = useState(false);
   const [isTauri, setIsTauri] = useState(false);
 
@@ -47,11 +47,9 @@ const Dashboard: React.FC = () => {
       let retries = 3;
       while (retries > 0) {
         try {
-          if (!user) {
-            setLoading(false);
-            return;
-          };
+
           
+          if (!user) return;
           const userDocRef = doc(db, "users", user.uid);
           const userDoc = await getDoc(userDocRef);
 
@@ -96,7 +94,7 @@ const Dashboard: React.FC = () => {
           break; // Don't retry other errors
         }
       }
-      setLoading(false);
+
     };
 
     fetchData();
@@ -229,9 +227,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">Loading stats...</div>;
-  }
+
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
