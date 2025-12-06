@@ -29,7 +29,6 @@
       ]
     },
     "core:path:default",
-    "http:default",
     "http:default"
   ]
 }

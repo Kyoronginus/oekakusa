@@ -41,7 +41,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8 relative">
+    <div className="min-h-screen flex flex-col bg-gray-900 text-white p-8 relative">
       {/* Tauri Warning Banner */}
       {!isTauri && (
         <div className="bg-yellow-600 text-white p-4 rounded-lg mb-8 flex items-center gap-3">
@@ -53,11 +53,15 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Header */}
+      {/* Header */}    
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Zap className="text-yellow-400" /> Oekakusa Dashboard
         </h1>
+        <p className="text-gray-400 text-sm">{new Date().toLocaleDateString()}</p>
+
+        {/* TODO: Add user name */}
+        {/* <p className="text-gray-400 text-sm">Welcome, {user?.displayName}</p> */}
         <div className="flex gap-4">
           <button 
             onClick={handleCheckNetwork} 

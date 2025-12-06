@@ -39,7 +39,7 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({ values }) => {
       />
       <Tooltip id="heatmap-tooltip" />
       <style>{`
-        .react-calendar-heatmap .color-empty { fill: #1f2937; }
+        .react-calendar-heatmap .color-empty { fill: rgba(97, 97, 97, 1); }
         .react-calendar-heatmap .color-scale-1 { fill: #0e4429; }
         .react-calendar-heatmap .color-scale-2 { fill: #006d32; }
         .react-calendar-heatmap .color-scale-3 { fill: #26a641; }
