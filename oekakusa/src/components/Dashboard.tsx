@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
-import { Zap, Activity, Film, Settings, LogOut } from 'lucide-react';
+import { Zap, Activity, Film, Settings, LogOut, User } from 'lucide-react';
 
 import ContributionGraph from './ContributionGraph';
 import StatsOverview from './dashboard/StatsOverview';
@@ -10,6 +10,9 @@ import ExportGifModal from './dashboard/ExportGifModal';
 
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useThumbnailListener } from '../hooks/useThumbnailListener';
+import { getLocalYYYYMMDD } from '../utils/dateUtils';
+
+// Force HMR update
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -41,11 +44,11 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-900 text-white p-8 relative">
+    <div className="min-h-screen flex flex-col bg-surface text-gray-800 p-8 relative">
       {/* Tauri Warning Banner */}
       {!isTauri && (
-        <div className="bg-yellow-600 text-white p-4 rounded-lg mb-8 flex items-center gap-3">
-          <Zap className="text-yellow-300" />
+        <div className="bg-orange-100 text-orange-800 p-4 rounded-lg mb-8 flex items-center gap-3 border border-orange-200">
+          <Zap className="text-orange-500" />
           <div>
             <p className="font-bold">Browser Mode Detected</p>
             <p className="text-sm">Tauri backend features disabled.</p>
@@ -55,32 +58,36 @@ const Dashboard: React.FC = () => {
 
       {/* Header */}    
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Zap className="text-yellow-400" /> Oekakusa Dashboard
+        <h1 className="text-xl font-bold flex items-center gap-2 text-primary">
+          <Zap className="text-secondary" /> Dashboard
         </h1>
-        <p className="text-gray-400 text-sm">{new Date().toLocaleDateString()}</p>
+        <p className="text-gray-500 text-sm">{new Date().toLocaleDateString()}</p>
 
-        {/* TODO: Add user name */}
-        {/* <p className="text-gray-400 text-sm">Welcome, {user?.displayName}</p> */}
+        <p className="text-gray-500 text-sm">Welcome, <span className="text-primary font-bold">{auth.currentUser?.displayName || 'Artist'}</span></p>
         <div className="flex gap-4">
           <button 
             onClick={handleCheckNetwork} 
-            className="p-2 bg-blue-600 rounded hover:bg-blue-500 flex items-center gap-2"
+            className="p-2 bg-secondary/10 text-secondary rounded hover:bg-secondary/20 flex items-center gap-2 transition"
+            title="Test Network"
           >
             <Activity size={20} /> Test Net
           </button>
           
           <button 
             onClick={() => setShowExportModal(true)} 
-            className="p-2 bg-purple-600 rounded hover:bg-purple-500 flex items-center gap-2"
+            className="p-2 bg-primary/10 text-primary rounded hover:bg-primary/20 flex items-center gap-2 transition"
+            title="Export GIF"
           >
             <Film size={20} /> Export GIF
           </button>
 
-          <button onClick={() => navigate('/settings')} className="p-2 bg-gray-800 rounded hover:bg-gray-700">
+          <button onClick={() => navigate('/settings')} className="p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 text-gray-500 hover:text-primary transition" title="Watch Settings">
             <Settings size={20} />
           </button>
-          <button onClick={handleLogout} className="p-2 bg-red-900 rounded hover:bg-red-800">
+          <button onClick={() => navigate('/profile')} className="p-2 bg-white border border-gray-200 rounded hover:bg-gray-50 text-gray-500 hover:text-primary transition" title="Profile">
+             <User size={20} />
+          </button>
+          <button onClick={handleLogout} className="p-2 bg-red-50 text-red-500 border border-red-100 rounded hover:bg-red-100 transition" title="Logout">
             <LogOut size={20} />
           </button>
         </div>
@@ -89,11 +96,11 @@ const Dashboard: React.FC = () => {
       <StatsOverview 
         xp={xp} 
         streak={streak} 
-        todaysCommits={heatmapValues.find(v => v.date === new Date().toISOString().split('T')[0])?.count || 0} 
+        todaysCommits={heatmapValues.find(v => v.date === getLocalYYYYMMDD())?.count || 0} 
       />
 
-      <div className="bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
-        <h2 className="text-xl font-semibold mb-4">Activity</h2>
+      <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">Activity</h2>
         <ContributionGraph values={heatmapValues} />
       </div>
 

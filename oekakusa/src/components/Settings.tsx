@@ -122,42 +122,42 @@ const Settings: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white p-8">
-            <button onClick={() => navigate('/dashboard')} className="mb-6 flex items-center gap-2 text-gray-400 hover:text-white transition">
+        <div className="min-h-screen bg-surface text-gray-800 p-8">
+            <button onClick={() => navigate('/dashboard')} className="mb-6 flex items-center gap-2 text-gray-500 hover:text-primary transition">
                 <ArrowLeft size={20} /> Back to Dashboard
             </button>
             
-            <div className="bg-gray-800 p-8 rounded-xl shadow-lg max-w-2xl mx-auto">
-                <h1 className="text-2xl font-bold mb-6">Watch Settings</h1>
+            <div className="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto border border-gray-100">
+                <h1 className="text-2xl font-bold mb-6 text-primary">Watch Settings</h1>
                 
                 <div className="mb-6">
-                    <p className="text-gray-400 mb-4">
+                    <p className="text-gray-500 mb-4">
                         Add folders or specific files to monitor. Oekakusa will track any changes to `.clip` files in these locations.
                     </p>
 
                     <div className="flex gap-4 mb-4">
                         <button 
                             onClick={handleAddFolder}
-                            className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition"
+                            className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded transition border border-gray-200"
                         >
                             <FolderPlus size={18} /> Add Folder
                         </button>
                         <button 
                             onClick={handleAddFile}
-                            className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded transition"
+                            className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded transition border border-gray-200"
                         >
                             <FilePlus size={18} /> Add File
                         </button>
                     </div>
 
-                    <div className="space-y-2 bg-gray-900 p-4 rounded-lg min-h-[100px]">
-                        {paths.length === 0 && <p className="text-gray-600 italic">No paths added yet.</p>}
+                    <div className="space-y-2 bg-gray-50 p-4 rounded-lg min-h-[100px] border border-gray-200">
+                        {paths.length === 0 && <p className="text-gray-400 italic">No paths added yet.</p>}
                         {paths.map((p, i) => (
-                            <div key={i} className="flex justify-between items-center bg-gray-800 p-2 rounded">
-                                <span className="truncate text-sm font-mono text-gray-300" title={p}>{p}</span>
+                            <div key={i} className="flex justify-between items-center bg-white p-2 rounded shadow-sm border border-gray-100">
+                                <span className="truncate text-sm font-mono text-gray-600" title={p}>{p}</span>
                                 <button 
                                     onClick={() => handleRemovePath(p)}
-                                    className="text-red-400 hover:text-red-300 p-1"
+                                    className="text-red-400 hover:text-red-500 p-1"
                                 >
                                     <Trash2 size={16} />
                                 </button>
@@ -170,7 +170,7 @@ const Settings: React.FC = () => {
                     <button 
                         onClick={handleSave}
                         disabled={loading}
-                        className={`bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded flex items-center gap-2 ${loading ? 'opacity-50' : ''}`}
+                        className={`bg-primary hover:bg-primary-dark text-black px-4 py-2 rounded flex items-center gap-2 shadow-md ${loading ? 'opacity-50' : ''}`}
                     >
                         <Save size={20} /> {loading ? 'Saving...' : 'Save Configuration'}
                     </button>

@@ -10,7 +10,6 @@ interface ContributionGraphProps {
 const ContributionGraph: React.FC<ContributionGraphProps> = ({ values }) => {
   const today = new Date();
   
-  // Shift date for better visualization (e.g. show last 3-4 months)
   const shiftDate = (date: Date, numDays: number) => {
     const newDate = new Date(date);
     newDate.setDate(newDate.getDate() + numDays);
@@ -36,15 +35,23 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({ values }) => {
           };
         }}
         showWeekdayLabels={true}
+        gutterSize={2} 
       />
       <Tooltip id="heatmap-tooltip" />
+      
       <style>{`
-        .react-calendar-heatmap .color-empty { fill: rgba(97, 97, 97, 1); }
-        .react-calendar-heatmap .color-scale-1 { fill: #0e4429; }
-        .react-calendar-heatmap .color-scale-2 { fill: #006d32; }
-        .react-calendar-heatmap .color-scale-3 { fill: #26a641; }
-        .react-calendar-heatmap .color-scale-4 { fill: #39d353; }
-        .react-calendar-heatmap text { font-size: 10px; fill: #6b7280; }
+        .react-calendar-heatmap rect {
+          rx: 3px; 
+          ry: 3px; 
+          shape-rendering: geometricPrecision; 
+        }
+
+        .react-calendar-heatmap .color-empty { fill: #d2dae7ff; } 
+        .react-calendar-heatmap .color-scale-1 { fill: #ffccbc; }
+        .react-calendar-heatmap .color-scale-2 { fill: #ffab91; }
+        .react-calendar-heatmap .color-scale-3 { fill: #ff8a65; }
+        .react-calendar-heatmap .color-scale-4 { fill: #ff7f50; }
+        .react-calendar-heatmap text { font-size: 10px; fill: #9ca3af; }
       `}</style>
     </div>
   );

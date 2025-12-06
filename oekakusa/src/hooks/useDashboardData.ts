@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { doc, collection, query, orderBy, onSnapshot, setDoc } from 'firebase/firestore';
+import { getLocalYYYYMMDD } from '../utils/dateUtils';
 
 export interface Commit {
   id?: string;
@@ -49,7 +50,7 @@ export const useDashboardData = () => {
         // Recalculate Heatmap
         const counts: { [key: string]: number } = {};
         fetchedCommits.forEach(c => {
-            const date = new Date(c.timestamp * 1000).toISOString().split('T')[0];
+            const date = getLocalYYYYMMDD(new Date(c.timestamp * 1000));
             counts[date] = (counts[date] || 0) + 1;
         });
         setHeatmapValues(Object.entries(counts).map(([date, count]) => ({ date, count })));

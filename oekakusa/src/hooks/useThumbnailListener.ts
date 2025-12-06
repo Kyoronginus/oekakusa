@@ -5,6 +5,7 @@ import { auth, db, storage } from '../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Commit, UserData } from './useDashboardData';
+import { getLocalYYYYMMDD } from '../utils/dateUtils';
 
 export const useThumbnailListener = (isTauri: boolean) => {
   const user = auth.currentUser;
@@ -22,7 +23,7 @@ export const useThumbnailListener = (isTauri: boolean) => {
           const payload = event.payload;
           console.log('Thumbnail generated:', payload);
           
-          const today = new Date().toISOString().split('T')[0];
+          const today = getLocalYYYYMMDD();
 
           // --- 1. Upload to Storage ---
           let downloadURL = "";
@@ -69,7 +70,7 @@ export const useThumbnailListener = (isTauri: boolean) => {
             if (lastDate !== today) {
               const yesterday = new Date();
               yesterday.setDate(yesterday.getDate() - 1);
-              const yesterdayStr = yesterday.toISOString().split('T')[0];
+              const yesterdayStr = getLocalYYYYMMDD(yesterday);
 
               if (lastDate === yesterdayStr) {
                 newStreak += 1;
