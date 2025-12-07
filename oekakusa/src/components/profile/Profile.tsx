@@ -118,94 +118,98 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-surface p-8 text-text">
-      <button
-        onClick={() => navigate("/dashboard")}
-        className="mb-6 flex items-center gap-2 text-text-muted hover:text-primary transition"
-      >
-        <ArrowLeft size={20} /> Back to Dashboard
-      </button>
+      <div className="w-full max-w-xl mx-auto">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="mb-6 flex items-center gap-2 text-text-muted hover:text-primary transition"
+        >
+          <ArrowLeft size={20} /> Back to Dashboard
+        </button>
 
-      <div className="bg-background p-8 rounded-xl shadow-lg max-w-xl mx-auto border border-gray-100">
-        <h1 className="text-3xl font-bold mb-6 text-primary flex items-center gap-2">
-          <User className="text-secondary" /> Edit Profile
-        </h1>
+        <div className="bg-background p-8 rounded-xl shadow-lg border border-gray-100">
+          <h1 className="text-3xl font-bold mb-6 text-primary flex items-center gap-2">
+            <User className="text-secondary" /> Edit Profile
+          </h1>
 
-        {message && (
-          <div
-            className={`p-4 rounded-lg mb-6 ${
-              message.type === "success"
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
-            }`}
-          >
-            {message.text}
+          {message && (
+            <div
+              className={`p-4 rounded-lg mb-6 ${
+                message.type === "success"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              {message.text}
+            </div>
+          )}
+
+          <div className="flex flex-col items-center mb-8">
+            <div
+              className="relative group cursor-pointer"
+              onClick={handlePhotoPick}
+            >
+              <img
+                src={photoURL || "https://placehold.co/150?text=Avatar"}
+                alt="Profile"
+                className="w-32 h-32 rounded-full object-cover border-4 border-secondary shadow-md"
+                onError={(e) =>
+                  (e.currentTarget.src = "https://placehold.co/150?text=Avatar")
+                }
+              />
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <Camera className="text-white" />
+              </div>
+            </div>
+            <p className="text-sm text-text-muted mt-2">
+              Click to change photo
+            </p>
           </div>
-        )}
 
-        <div className="flex flex-col items-center mb-8">
-          <div
-            className="relative group cursor-pointer"
-            onClick={handlePhotoPick}
-          >
-            <img
-              src={photoURL || "https://placehold.co/150?text=Avatar"}
-              alt="Profile"
-              className="w-32 h-32 rounded-full object-cover border-4 border-secondary shadow-md"
-              onError={(e) =>
-                (e.currentTarget.src = "https://placehold.co/150?text=Avatar")
-              }
-            />
-            <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-              <Camera className="text-white" />
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-text-muted mb-1">
+                Display Name
+              </label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none transition bg-surface"
+                placeholder="Enter your username"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-muted mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                value={user?.email || ""}
+                disabled
+                className="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+              />
             </div>
           </div>
-          <p className="text-sm text-text-muted mt-2">Click to change photo</p>
-        </div>
 
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-text-muted mb-1">
-              Display Name
-            </label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none transition bg-surface"
-              placeholder="Enter your username"
-            />
+          <div className="mt-8 flex flex-col gap-4">
+            <button
+              onClick={handleUpdateProfile}
+              disabled={loading}
+              className={`w-full bg-primary hover:bg-primary-dark text-black font-bold py-3 rounded-lg shadow-md transition flex items-center justify-center gap-2 ${
+                loading ? "opacity-70" : ""
+              }`}
+            >
+              <Save size={20} /> {loading ? "Saving..." : "Save Changes"}
+            </button>
+
+            <button
+              onClick={handlePasswordReset}
+              className="w-full bg-primary hover:bg-primary-dark text-red-500 font-bold py-3 rounded-lg shadow-md transition flex items-center justify-center gap-2"
+            >
+              <KeyRound size={20} /> Reset Password
+            </button>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-muted mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              value={user?.email || ""}
-              disabled
-              className="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-            />
-          </div>
-        </div>
-
-        <div className="mt-8 flex flex-col gap-4">
-          <button
-            onClick={handleUpdateProfile}
-            disabled={loading}
-            className={`w-full bg-primary hover:bg-primary-dark text-black font-bold py-3 rounded-lg shadow-md transition flex items-center justify-center gap-2 ${
-              loading ? "opacity-70" : ""
-            }`}
-          >
-            <Save size={20} /> {loading ? "Saving..." : "Save Changes"}
-          </button>
-
-          <button
-            onClick={handlePasswordReset}
-            className="w-full bg-primary hover:bg-primary-dark text-red-500 font-bold py-3 rounded-lg shadow-md transition flex items-center justify-center gap-2"
-          >
-            <KeyRound size={20} /> Reset Password
-          </button>
         </div>
       </div>
     </div>

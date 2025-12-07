@@ -26,7 +26,7 @@ const Dashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface text-gray-800 p-8 relative">
+    <div className="min-h-screen bg-surface text-gray-800 p-8 relative">
       {/* Tauri Warning Banner */}
       {!isTauri && (
         <div className="bg-orange-100 text-orange-800 p-4 rounded-lg mb-8 flex items-center gap-3 border border-orange-200">
@@ -38,24 +38,26 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      <DashboardHeader setShowExportModal={setShowExportModal} />
+      <div className="w-full max-w-6xl mx-auto space-y-8">
+        <DashboardHeader setShowExportModal={setShowExportModal} />
 
-      <StatsOverview
-        xp={xp}
-        streak={streak}
-        todaysCommits={
-          heatmapValues.find((v) => v.date === getLocalYYYYMMDD())?.count || 0
-        }
-      />
+        <StatsOverview
+          xp={xp}
+          streak={streak}
+          todaysCommits={
+            heatmapValues.find((v) => v.date === getLocalYYYYMMDD())?.count || 0
+          }
+        />
 
-      <div className="bg-white p-6 rounded-xl shadow-lg mb-8 border border-gray-100">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Activity</h2>
-        <div className="mx-10">
-          <ContributionGraph values={heatmapValues} />
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">Activity</h2>
+          <div className="mx-10">
+            <ContributionGraph values={heatmapValues} />
+          </div>
         </div>
-      </div>
 
-      <RecentCommits commits={commits} isTauri={isTauri} />
+        <RecentCommits commits={commits} isTauri={isTauri} />
+      </div>
 
       <ExportGifModal
         isOpen={showExportModal}
