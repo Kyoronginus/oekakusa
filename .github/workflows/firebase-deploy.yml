@@ -6,6 +6,9 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: oekakusa
     steps:
       - uses: actions/checkout@v4
       - run: npm ci
@@ -16,3 +19,4 @@ jobs:
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_OEKAKUSA }}"
           channelId: live
           projectId: oekakusa
+          entryPoint: oekakusa
