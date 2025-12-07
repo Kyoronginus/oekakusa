@@ -1,12 +1,38 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-
 // @ts-expect-error process is a nodejs global
+
 const host = process.env.TAURI_DEV_HOST;
+
+import { VitePWA } from "vite-plugin-pwa";
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: "autoUpdate",
+      includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
+      manifest: {
+        name: "Oekakusa",
+        short_name: "Oekakusa",
+        description: "Gamify your art process with Oekakusa",
+        theme_color: "#ffffff",
+        icons: [
+          {
+            src: "pwa-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
+        ],
+      },
+    }),
+  ],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
@@ -16,7 +42,7 @@ export default defineConfig(async () => ({
   server: {
     port: 1420,
     strictPort: true,
-    host: host || false,
+    host: host || true, // Allow LAN access
     hmr: host
       ? {
           protocol: "ws",

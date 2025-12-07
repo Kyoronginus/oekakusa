@@ -12,7 +12,7 @@ def create_gif(image_paths, output_path, duration=500):
             if os.path.exists(path):
                 try:
                     img = Image.open(path)
-                    # Resize to reasonable size if needed, e.g., max 800px width
+                    # we want to keep the original size
                     # img.thumbnail((800, 800)) 
                     images.append(img)
                 except Exception as e:

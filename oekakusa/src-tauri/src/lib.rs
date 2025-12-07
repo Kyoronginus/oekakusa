@@ -1,5 +1,5 @@
 use std::sync::Mutex;
-use tauri::Manager;
+// use tauri::Manager;
 
 pub mod gif;
 pub mod watcher;
