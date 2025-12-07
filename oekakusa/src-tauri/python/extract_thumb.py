@@ -9,7 +9,6 @@ def extract_thumbnail(clip_file_path, output_dir):
     try:
         if not os.path.exists(clip_file_path):
             return {"status": "error", "message": "Input file not found"}
-
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
@@ -71,11 +70,8 @@ def extract_thumbnail(clip_file_path, output_dir):
                 import io
                 
                 image = Image.open(io.BytesIO(image_data))
-                # Resize to max 400x400 --> REMOVED to keep original embedded size
-                # image.thumbnail((400, 400)) 
                 image.save(output_path, "PNG")
             except ImportError:
-                # Fallback if Pillow is not installed
                 with open(output_path, 'wb') as f:
                     f.write(image_data)
             except Exception as e:

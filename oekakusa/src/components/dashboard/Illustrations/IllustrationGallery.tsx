@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { Commit } from "../../../hooks/useDashboardData";
-import CommitGridModal from "../CommitGridModal";
+import CommitGridModal from "../commits/CommitGridModal";
 
 interface Illustration {
   id: string;

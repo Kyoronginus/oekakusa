@@ -7,7 +7,7 @@ import RecentCommits from "./RecentCommits";
 import ExportGifModal from "./ExportGifModal";
 import DashboardHeader from "./DashBoardHeader";
 import IllustrationGallery from "./Illustrations/IllustrationGallery";
-import DayCommitDetail from "./DayCommitDetail";
+import DayCommitDetail from "./commits/DayCommitDetail";
 import AnalysisModal from "./analyze/AnalysisModal";
 
 import { useDashboardData } from "../../hooks/useDashboardData";

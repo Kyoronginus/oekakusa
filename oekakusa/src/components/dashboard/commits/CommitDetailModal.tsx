@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { X, Calendar, Folder, Save } from "lucide-react";
-import { Commit } from "../../hooks/useDashboardData";
+import { Commit } from "../../../hooks/useDashboardData";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile, readFile } from "@tauri-apps/plugin-fs";
-import { auth, db } from "../../firebase";
+import { auth, db } from "../../../firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 interface CommitDetailModalProps {

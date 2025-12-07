@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { Commit } from "../../hooks/useDashboardData";
+import { Commit } from "../../../hooks/useDashboardData";
 import CommitDetailModal from "./CommitDetailModal";
 import { X } from "lucide-react";
 

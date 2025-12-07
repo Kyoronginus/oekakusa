@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { X, Film } from "lucide-react";
-import { Commit } from "../../hooks/useDashboardData";
+import { Commit } from "../../../hooks/useDashboardData";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import CommitDetailModal from "./CommitDetailModal";
-import ExportGifModal from "./ExportGifModal";
+import ExportGifModal from "../ExportGifModal";
 
 interface CommitGridModalProps {
   isOpen: boolean;
