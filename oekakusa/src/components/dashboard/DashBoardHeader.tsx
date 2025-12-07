@@ -14,7 +14,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   setShowAnalysisModal,
 }) => {
   const navigate = useNavigate();
-  const { handleLogout, handleCheckNetwork } = useDashboardAuth();
+  const { handleLogout } = useDashboardAuth();
   const user = auth.currentUser;
 
   return (
