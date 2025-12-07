@@ -10,6 +10,7 @@ const Settings: React.FC = () => {
   const navigate = useNavigate();
   const [paths, setPaths] = useState<string[]>([]);
   const [exportPath, setExportPath] = useState<string | null>(null);
+  const [snapshotInterval, setSnapshotInterval] = useState<number>(5); // Default 5s
   const [loading, setLoading] = useState(true);
 
   const [isTauri, setIsTauri] = useState(false);
@@ -32,11 +33,17 @@ const Settings: React.FC = () => {
             setPaths(data.watchPaths);
             // Sync backend just in case
             if (isTauri) {
-              await invoke("update_watch_paths", { paths: data.watchPaths });
+              await invoke("update_watch_paths", {
+                paths: data.watchPaths,
+                interval: data.snapshotInterval || 5,
+              });
             }
           }
           if (data.exportPath) {
             setExportPath(data.exportPath);
+          }
+          if (data.snapshotInterval) {
+            setSnapshotInterval(data.snapshotInterval);
           }
         }
       } catch (e) {
@@ -134,13 +141,17 @@ const Settings: React.FC = () => {
         {
           watchPaths: paths,
           exportPath: exportPath || null,
+          snapshotInterval: snapshotInterval,
         },
         { merge: true }
       );
 
       // 2. Update Rust Backend
       if (isTauri) {
-        await invoke("update_watch_paths", { paths });
+        await invoke("update_watch_paths", {
+          paths,
+          interval: snapshotInterval,
+        });
       }
 
       alert("Settings saved and watchers updated!");
@@ -211,6 +222,29 @@ const Settings: React.FC = () => {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="mb-6 border-t pt-6">
+            <h2 className="text-lg font-bold mb-4 text-primary">
+              Snapshot Interval
+            </h2>
+            <p className="text-gray-500 mb-4">
+              Minimum time (in seconds) between savings to capture a new
+              snapshot. Helps avoid duplicates if you save frequently.
+            </p>
+            <div className="flex items-center gap-4">
+              <input
+                type="range"
+                min="1"
+                max="600" // 10 minutes
+                value={snapshotInterval}
+                onChange={(e) => setSnapshotInterval(parseInt(e.target.value))}
+                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <span className="font-mono text-gray-700 w-16 text-right">
+                {snapshotInterval}s
+              </span>
             </div>
           </div>
 

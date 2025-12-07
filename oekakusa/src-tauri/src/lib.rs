@@ -21,6 +21,7 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .manage(WatcherState {
             watcher: Mutex::new(None),
+            active_config: Mutex::new(None),
         })
         .invoke_handler(tauri::generate_handler![
             greet,

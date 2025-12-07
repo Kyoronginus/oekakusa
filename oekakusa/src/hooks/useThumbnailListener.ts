@@ -14,12 +14,15 @@ export const useThumbnailListener = (isTauri: boolean) => {
     if (!user || !isTauri) return;
 
     let unlistenFn: (() => void) | undefined;
+    let isMounted = true;
 
     const setupListener = async () => {
       try {
         console.log("Attempting to listen to 'thumbnail-generated'...");
         
-        unlistenFn = await listen('thumbnail-generated', async (event: any) => {
+        const unlisten = await listen('thumbnail-generated', async (event: any) => {
+          if (!isMounted) return; // ignore events if unmounted (Zombie check)
+          
           const payload = event.payload;
           console.log('Thumbnail generated:', payload);
           
@@ -90,6 +93,14 @@ export const useThumbnailListener = (isTauri: boolean) => {
              console.error("Failed to save commit to Firestore:", dbError);
           }
         });
+
+        if (isMounted) {
+            unlistenFn = unlisten;
+        } else {
+            // If strictly unmounted before promise resolved, immediately unlisten
+            unlisten();
+        }
+
       } catch (err) {
         console.error("Failed to setup listener:", err);
       }
@@ -98,6 +109,7 @@ export const useThumbnailListener = (isTauri: boolean) => {
     setupListener();
 
     return () => {
+      isMounted = false;
       if (unlistenFn) unlistenFn();
     };
   }, [user, isTauri]);

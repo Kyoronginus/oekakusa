@@ -84,17 +84,17 @@ const IllustrationGallery: React.FC<IllustrationGalleryProps> = ({
               onClick={() => setSelectedIllustrationPath(illust.path)}
               className="group bg-gray-50 rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition cursor-pointer"
             >
-              <div className="relative aspect-video bg-gray-200">
+              <div className="relative aspect-video bg-gray-200 overflow-hidden">
                 <img
                   src={illust.thumbnail}
                   alt={illust.name}
-                  className="w-full h-full object-cover transition transform group-hover:scale-105"
+                  className="w-full h-full object-cover transition transform group-hover:scale-105 duration-300"
                   onError={(e) => {
                     e.currentTarget.src =
                       "https://placehold.co/400x300?text=No+Image";
                   }}
                 />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 pointer-events-none">
                   <p
                     className="text-white font-medium truncate"
                     title={illust.name}

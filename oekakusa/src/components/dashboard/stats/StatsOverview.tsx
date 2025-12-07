@@ -1,5 +1,5 @@
 import React from "react";
-import { Activity, Flame, Zap } from "lucide-react";
+import { Paintbrush, Flame, Zap } from "lucide-react";
 import { StatCard } from "./StatsComponents";
 
 interface StatsOverviewProps {
@@ -16,7 +16,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <StatCard
-        icon={Activity}
+        icon={Paintbrush}
         label="Cumulative Commits"
         value={`${xp / 100}`}
         color="blue"
