@@ -32,7 +32,7 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({ values }) => {
           return {
             'data-tooltip-id': 'heatmap-tooltip',
             'data-tooltip-content': value.date ? `${value.date}: ${value.count} contributions` : 'No contributions',
-          };
+          } as any;
         }}
         showWeekdayLabels={true}
         gutterSize={2} 

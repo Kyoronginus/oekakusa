@@ -39,7 +39,6 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({ isOpen, onClose, commit
   if (!isOpen) return null;
 
   const handleExportGif = async (commitsToExport: Commit[], projectPath: string) => {
-    // ... existing handleExportGif content ...
     console.log("Export GIF clicked for:", projectPath);
     if (exportingPath) return; 
     setExportingPath(projectPath);
@@ -88,7 +87,6 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({ isOpen, onClose, commit
              downloadedPaths.push(filePath);
            } catch (err) {
              console.error(`Failed to download ${commit.thumbnail_url}:`, err);
-             // Fallback?
              downloadedPaths.push(commit.thumbnail_path);
            }
         } else {
@@ -97,7 +95,7 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({ isOpen, onClose, commit
         }
       }
 
-      // Filter out invalid paths?
+      // Filter out invalid paths
       if (downloadedPaths.length === 0) {
         throw new Error("No images could be prepared for GIF.");
       }

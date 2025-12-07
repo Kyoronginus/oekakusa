@@ -4,7 +4,7 @@ import { auth } from '../firebase';
 import { Zap, Activity, Film, Settings, LogOut, User } from 'lucide-react';
 
 import ContributionGraph from './ContributionGraph';
-import StatsOverview from './dashboard/StatsOverview';
+import StatsOverview from './dashboard/stats/StatsOverview';
 import RecentCommits from './dashboard/RecentCommits';
 import ExportGifModal from './dashboard/ExportGifModal';
 

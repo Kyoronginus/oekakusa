@@ -16,7 +16,7 @@ const RecentCommits: React.FC<RecentCommitsProps> = ({ commits, isTauri }) => {
       <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">Recent Commits</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {commits.slice(0, 12).map((commit, index) => { // Limit to recent 12
+          {commits.slice(0, 20).map((commit, index) => { // Limit to recent 20
             return (
             <div 
               key={index} 
