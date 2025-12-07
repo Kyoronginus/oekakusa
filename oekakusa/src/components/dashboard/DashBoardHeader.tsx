@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
+import { auth } from "../../firebase";
 import { Activity, Film, Settings, LogOut, User } from "lucide-react";
-import { useDashboardAuth } from "../utils/handleAuth";
+import { useDashboardAuth } from "../../utils/handleAuth";
 
 interface DashboardHeaderProps {
   setShowExportModal: (show: boolean) => void;

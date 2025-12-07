@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Save, FolderPlus, FilePlus, Trash2 } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { auth, db } from "../firebase";
+import { auth, db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 
 const Settings: React.FC = () => {

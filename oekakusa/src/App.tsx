@@ -5,8 +5,8 @@ import {
   Navigate,
 } from "react-router-dom";
 import Login from "./components/auth/Login";
-import Dashboard from "./components/Dashboard";
-import Settings from "./components/Settings";
+import Dashboard from "./components/dashboard/Dashboard";
+import Settings from "./components/setting/Settings";
 import Profile from "./components/profile/Profile";
 import { useEffect, useState } from "react";
 import { auth } from "./firebase";
