@@ -1,27 +1,30 @@
-import React, { useState } from 'react';
-import { auth } from '../firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, UserPlus, LogIn } from 'lucide-react';
+import React, { useState } from "react";
+import { auth } from "../../firebase";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { Lock, Mail, UserPlus, LogIn } from "lucide-react";
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
+    setError("");
+
     try {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err: any) {
       setError(err.message);
     }
@@ -31,9 +34,9 @@ const Login: React.FC = () => {
     <div className="min-h-screen bg-surface flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-100">
         <h1 className="text-3xl font-bold text-primary mb-6 text-center">
-          {isRegistering ? 'Create Account' : 'Welcome Back'}
+          {isRegistering ? "Create Account" : "Welcome Back"}
         </h1>
-        
+
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded mb-4 text-sm">
             {error}
@@ -52,7 +55,7 @@ const Login: React.FC = () => {
               required
             />
           </div>
-          
+
           <div className="relative">
             <Lock className="absolute left-3 top-3 text-secondary" size={20} />
             <input
@@ -67,20 +70,22 @@ const Login: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full bg-primary hover:bg-primary-dark text-white p-3 rounded font-bold transition flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+            className="w-full bg-primary border border-gray-200 hover:bg-primary-dark text-black-500 p-3 rounded font-bold transition flex items-center justify-center gap-2 hover:shadow-xl"
           >
             {isRegistering ? <UserPlus size={20} /> : <LogIn size={20} />}
-            {isRegistering ? 'Sign Up' : 'Sign In'}
+            {isRegistering ? "Sign Up" : "Sign In"}
           </button>
         </form>
 
         <p className="mt-6 text-center text-gray-500">
-          {isRegistering ? "Already have an account?" : "Don't have an account?"}
+          {isRegistering
+            ? "Already have an account?"
+            : "Don't have an account?"}
           <button
             onClick={() => setIsRegistering(!isRegistering)}
             className="text-secondary hover:text-secondary-dark ml-2 font-semibold"
           >
-            {isRegistering ? 'Sign In' : 'Sign Up'}
+            {isRegistering ? "Sign In" : "Sign Up"}
           </button>
         </p>
       </div>

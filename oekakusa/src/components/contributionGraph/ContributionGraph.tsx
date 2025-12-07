@@ -1,7 +1,7 @@
-import React from 'react';
-import CalendarHeatmap from 'react-calendar-heatmap';
-import 'react-calendar-heatmap/dist/styles.css';
-import { Tooltip } from 'react-tooltip';
+import React from "react";
+import CalendarHeatmap from "react-calendar-heatmap";
+import "react-calendar-heatmap/dist/styles.css";
+import { Tooltip } from "react-tooltip";
 
 interface ContributionGraphProps {
   values: { date: string; count: number }[];
@@ -9,7 +9,7 @@ interface ContributionGraphProps {
 
 const ContributionGraph: React.FC<ContributionGraphProps> = ({ values }) => {
   const today = new Date();
-  
+
   const shiftDate = (date: Date, numDays: number) => {
     const newDate = new Date(date);
     newDate.setDate(newDate.getDate() + numDays);
@@ -24,21 +24,23 @@ const ContributionGraph: React.FC<ContributionGraphProps> = ({ values }) => {
         values={values}
         classForValue={(value) => {
           if (!value) {
-            return 'color-empty';
+            return "color-empty";
           }
           return `color-scale-${Math.min(value.count, 4)}`;
         }}
         tooltipDataAttrs={(value: any) => {
           return {
-            'data-tooltip-id': 'heatmap-tooltip',
-            'data-tooltip-content': value.date ? `${value.date}: ${value.count} contributions` : 'No contributions',
+            "data-tooltip-id": "heatmap-tooltip",
+            "data-tooltip-content": value.date
+              ? `${value.date}: ${value.count} contributions`
+              : "No contributions",
           } as any;
         }}
         showWeekdayLabels={true}
-        gutterSize={2} 
+        gutterSize={2}
       />
       <Tooltip id="heatmap-tooltip" />
-      
+
       <style>{`
         .react-calendar-heatmap rect {
           rx: 3px; 
