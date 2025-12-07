@@ -29,6 +29,22 @@
       ]
     },
     "core:path:default",
-    "http:default"
+    "http:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://firebasestorage.googleapis.com/**"
+        }
+      ]
+    },
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://firebasestorage.googleapis.com/**"
+        }
+      ]
+    }
   ]
 }

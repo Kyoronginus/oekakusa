@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Zap } from "lucide-react";
 
 import ContributionGraph from "./contributionGraph/ContributionGraph";
@@ -8,13 +8,17 @@ import ExportGifModal from "./ExportGifModal";
 import DashboardHeader from "./DashBoardHeader";
 import IllustrationGallery from "./Illustrations/IllustrationGallery";
 import DayCommitDetail from "./DayCommitDetail";
+import AnalysisModal from "./AnalysisModal";
 
 import { useDashboardData } from "../../hooks/useDashboardData";
 import { useThumbnailListener } from "../../hooks/useThumbnailListener";
 import { getLocalYYYYMMDD } from "../../utils/dateUtils";
 
 const Dashboard: React.FC = () => {
-  const [isTauri, setIsTauri] = useState(false);
+  const [isTauri] = useState(() => {
+    // @ts-ignore
+    return !!(window.__TAURI__ || window.__TAURI_INTERNALS__);
+  });
   const [showExportModal, setShowExportModal] = useState(false);
 
   // Feature 1: Year Selector State
@@ -23,16 +27,13 @@ const Dashboard: React.FC = () => {
   // Feature 2: Selected Date for Day Detail
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
+  // Analysis Modal State
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+
   // Custom Hooks
   // We get ALL commits here. We need to filter them for specific views.
   const { commits, xp, streak, heatmapValues } = useDashboardData();
   useThumbnailListener(isTauri);
-
-  useEffect(() => {
-    // @ts-ignore
-    const isTauriCheck = !!(window.__TAURI__ || window.__TAURI_INTERNALS__);
-    setIsTauri(isTauriCheck);
-  }, []);
 
   // Compute available years from commits
   const availableYears = React.useMemo(() => {
@@ -72,7 +73,10 @@ const Dashboard: React.FC = () => {
       )}
 
       <div className="w-full max-w-6xl mx-auto space-y-8">
-        <DashboardHeader setShowExportModal={setShowExportModal} />
+        <DashboardHeader
+          setShowExportModal={setShowExportModal}
+          setShowAnalysisModal={setShowAnalysisModal}
+        />
 
         <StatsOverview
           xp={xp}
@@ -136,6 +140,13 @@ const Dashboard: React.FC = () => {
       <ExportGifModal
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
+        commits={commits}
+        isTauri={isTauri}
+      />
+
+      <AnalysisModal
+        isOpen={showAnalysisModal}
+        onClose={() => setShowAnalysisModal(false)}
         commits={commits}
         isTauri={isTauri}
       />

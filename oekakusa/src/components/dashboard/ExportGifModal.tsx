@@ -6,6 +6,8 @@ import { Commit } from "../../hooks/useDashboardData";
 import { writeFile, mkdir } from "@tauri-apps/plugin-fs";
 import { appCacheDir, join } from "@tauri-apps/api/path";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import { auth, db } from "../../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 interface ExportGifModalProps {
   isOpen: boolean;
@@ -22,6 +24,28 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({
 }) => {
   const [exportingPath, setExportingPath] = useState<string | null>(null);
   const [progressMsg, setProgressMsg] = useState<string>("");
+  const [userExportPath, setUserExportPath] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const fetchSettings = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          if (data.exportPath) {
+            setUserExportPath(data.exportPath);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load export settings", e);
+      }
+    };
+    if (isOpen) {
+      fetchSettings();
+    }
+  }, [isOpen]);
 
   // Group commits by file path
   const projects = React.useMemo(() => {
@@ -126,6 +150,7 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({
 
       const result = await invoke("export_gif", {
         imagePaths: downloadedPaths,
+        outputPath: userExportPath, // Pass custom path if set
       });
       console.log("Export result:", result);
       alert(`GIF Exported Successfully to:\n${result}`);
@@ -140,7 +165,7 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center p-4 text-white">
+    <div className="fixed inset-0 z-[60] bg-white bg-opacity-75 flex items-center justify-center p-4 text-white">
       <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl relative">
         <div className="p-6 flex justify-between items-center bg-gray-400">
           <h2 className="text-xl font-bold flex items-center gap-2">

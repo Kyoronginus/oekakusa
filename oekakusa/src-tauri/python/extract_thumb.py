@@ -71,8 +71,8 @@ def extract_thumbnail(clip_file_path, output_dir):
                 import io
                 
                 image = Image.open(io.BytesIO(image_data))
-                # Resize to max 400x400, preserving aspect ratio
-                image.thumbnail((400, 400))
+                # Resize to max 400x400 --> REMOVED to keep original embedded size
+                # image.thumbnail((400, 400)) 
                 image.save(output_path, "PNG")
             except ImportError:
                 # Fallback if Pillow is not installed

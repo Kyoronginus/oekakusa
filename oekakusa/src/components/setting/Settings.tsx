@@ -9,6 +9,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 const Settings: React.FC = () => {
   const navigate = useNavigate();
   const [paths, setPaths] = useState<string[]>([]);
+  const [exportPath, setExportPath] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [isTauri, setIsTauri] = useState(false);
@@ -33,6 +34,9 @@ const Settings: React.FC = () => {
             if (isTauri) {
               await invoke("update_watch_paths", { paths: data.watchPaths });
             }
+          }
+          if (data.exportPath) {
+            setExportPath(data.exportPath);
           }
         }
       } catch (e) {
@@ -60,6 +64,26 @@ const Settings: React.FC = () => {
           // @ts-ignore
           setPaths([...paths, selected]);
         }
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Failed to open dialog: " + e);
+    }
+  };
+
+  const handleSetExportPath = async () => {
+    if (!isTauri) {
+      alert("File picking is only available in the Tauri desktop app.");
+      return;
+    }
+    try {
+      const selected = await open({
+        directory: true,
+        multiple: false,
+      });
+      if (selected) {
+        // @ts-ignore
+        setExportPath(selected);
       }
     } catch (e) {
       console.error(e);
@@ -109,6 +133,7 @@ const Settings: React.FC = () => {
         doc(db, "users", user.uid),
         {
           watchPaths: paths,
+          exportPath: exportPath || null,
         },
         { merge: true }
       );
@@ -186,6 +211,39 @@ const Settings: React.FC = () => {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="mb-6 border-t pt-6">
+            <h2 className="text-lg font-bold mb-4 text-primary">
+              Export Settings
+            </h2>
+            <p className="text-gray-500 mb-4">
+              Select a default directory for saving exported GIFs and Images.
+            </p>
+            <div className="flex gap-4 items-center">
+              <input
+                type="text"
+                readOnly
+                value={exportPath || ""}
+                placeholder="No directory selected (Defaults to AppData)"
+                className="flex-1 p-2 border border-gray-300 rounded bg-gray-50 text-gray-600 text-sm"
+              />
+              <button
+                onClick={handleSetExportPath}
+                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded transition border border-gray-200 whitespace-nowrap"
+              >
+                <FolderPlus size={18} /> Select Folder
+              </button>
+              {exportPath && (
+                <button
+                  onClick={() => setExportPath(null)}
+                  className="text-red-400 hover:text-red-500 p-2 border border-transparent hover:border-red-100 rounded"
+                  title="Clear"
+                >
+                  <Trash2 size={18} />
+                </button>
+              )}
             </div>
           </div>
 
