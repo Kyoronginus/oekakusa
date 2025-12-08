@@ -3,6 +3,7 @@ use std::sync::Mutex;
 
 pub mod gif;
 pub mod watcher;
+pub mod thumbnail;
 
 use watcher::WatcherState;
 

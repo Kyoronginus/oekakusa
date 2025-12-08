@@ -2,7 +2,6 @@ use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::process::Command;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -38,7 +37,7 @@ pub fn update_watch_paths(
     }
 
     if paths.is_empty() {
-        *config_guard = None; // clear config if empty
+        *config_guard = None;
         return Ok(());
     }
 
@@ -97,18 +96,11 @@ pub fn update_watch_paths(
 
                             println!("Processing change for: {}", path_key);
 
-                            let python_script = match app_handle.path().resolve("python/extract_thumb.py", tauri::path::BaseDirectory::Resource) {
-                                Ok(p) => p,
-                                Err(e) => {
-                                    println!("Failed to resolve python script: {}", e);
-                                    continue;
-                                }
-                            };
                             let output_dir = match app_handle.path().resolve("thumbnails", tauri::path::BaseDirectory::AppData) {
                                 Ok(p) => p,
                                 Err(e) => {
                                     println!("Failed to resolve output dir: {}", e);
-                                    PathBuf::from("thumbnails") // Fallback
+                                    PathBuf::from("thumbnails")
                                 }
                             };
 
@@ -116,48 +108,18 @@ pub fn update_watch_paths(
                                 let _ = fs::create_dir_all(&output_dir);
                             }
 
-                            // Execute Python script (use the canonical path for the script)
-                            let output = Command::new("python")
-                                .arg(&python_script)
-                                .arg(&canonical_path)
-                                .arg(&output_dir)
-                                .output();
+                            // Execute Native Rust Thumbnail Extraction
+                            let thumb_result = crate::thumbnail::extract_thumbnail(&canonical_path, &output_dir);
 
-                            match output {
-                                Ok(o) => {
-                                    if o.status.success() {
-                                        let stdout = String::from_utf8_lossy(&o.stdout);
-                                        println!("Python output: {}", stdout);
-
-                                        if let Ok(mut json) =
-                                            serde_json::from_str::<serde_json::Value>(&stdout)
-                                        {
-                                            if json["status"] == "success" {
-                                                // Clean up the thumbnail path for frontend if valid
-                                                if let Some(path_str) =
-                                                    json["thumbnail_path"].as_str()
-                                                {
-                                                     let mut clean_thumb = path_str.to_string();
-                                                     if let Ok(canon_thumb) = fs::canonicalize(path_str) {
-                                                         clean_thumb = canon_thumb.to_string_lossy().to_string();
-                                                         if clean_thumb.starts_with("\\\\?\\") {
-                                                             clean_thumb = clean_thumb[4..].to_string();
-                                                         }
-                                                     }
-                                                     json["thumbnail_path"] = serde_json::Value::String(clean_thumb);
-                                                }
-
-                                                let _ =
-                                                    app_handle.emit("thumbnail-generated", &json);
-                                            }
-                                        }
-                                    } else {
-                                        let stderr = String::from_utf8_lossy(&o.stderr);
-                                        println!("Python error: {}", stderr);
+                            match thumb_result {
+                                Ok(res) => {
+                                    println!("Thumbnail extracted: {:?}", res);
+                                    if let Err(e) = app_handle.emit("thumbnail-generated", res) {
+                                         println!("Failed to emit event: {}", e);
                                     }
                                 }
                                 Err(e) => {
-                                    println!("Failed to execute python: {}", e);
+                                    println!("Thumbnail extraction failed: {}", e);
                                 }
                             }
                         }
