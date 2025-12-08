@@ -45,7 +45,7 @@ const DayCommitDetail: React.FC<DayCommitDetailProps> = ({
           {commits.length} commits recorded
         </p>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-3">
           {commits.map((commit, index) => {
             return (
               <div
@@ -57,11 +57,13 @@ const DayCommitDetail: React.FC<DayCommitDetailProps> = ({
                   src={
                     commit.thumbnail_url ||
                     (isTauri
-                      ? convertFileSrc(commit.thumbnail_path)
+                      ? convertFileSrc(
+                          commit.thumbnail_small_path || commit.thumbnail_path
+                        )
                       : "https://placehold.co/400x300?text=Web+View")
                   }
                   alt="Thumbnail"
-                  className="w-full h-32 object-cover transition transform group-hover:scale-105"
+                  className="w-full h-24 object-cover transition transform group-hover:scale-105"
                   onError={(e) => {
                     e.currentTarget.src =
                       "https://placehold.co/400x300?text=Broken+Link";

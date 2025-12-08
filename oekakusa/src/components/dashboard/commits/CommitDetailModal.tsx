@@ -129,7 +129,9 @@ const CommitDetailModal: React.FC<CommitDetailModalProps> = ({
             src={
               commit.thumbnail_url ||
               (isTauri
-                ? convertFileSrc(commit.thumbnail_path)
+                ? convertFileSrc(
+                    commit.thumbnail_full_path || commit.thumbnail_path
+                  )
                 : "https://placehold.co/800x600?text=Web+View")
             }
             alt="Commit Detail"

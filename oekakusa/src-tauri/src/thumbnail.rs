@@ -10,6 +10,8 @@ pub struct ThumbnailResult {
     pub status: String,
     pub original_file: String,
     pub thumbnail_path: String,
+    pub thumbnail_small_path: Option<String>,
+    pub thumbnail_full_path: Option<String>,
     pub timestamp: i64,
     pub message: Option<String>,
 }
@@ -77,24 +79,36 @@ pub fn extract_thumbnail(clip_path: &Path, output_dir: &Path) -> Result<Thumbnai
 
     let data = image_data.ok_or("No thumbnail data found in any known tables")?;
 
-    // 5. Save Image
+    // 5. Save Image (Full & Small)
     let timestamp = chrono::Utc::now().timestamp();
     let file_stem = clip_path
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("unknown");
         
-    let output_filename = format!("{}_{}.png", file_stem, timestamp);
-    let output_path = output_dir.join(&output_filename);
+    let full_filename = format!("{}_{}_full.png", file_stem, timestamp);
+    let thumb_filename = format!("{}_{}_thumb.png", file_stem, timestamp);
+    
+    let full_path = output_dir.join(&full_filename);
+    let thumb_path = output_dir.join(&thumb_filename);
 
     let img = image::load_from_memory(&data).map_err(|e| format!("Failed to decode image: {}", e))?;
-    img.save_with_format(&output_path, ImageFormat::Png)
-        .map_err(|e| format!("Failed to save thumbnail: {}", e))?;
+    
+    // Save Full
+    img.save_with_format(&full_path, ImageFormat::Png)
+        .map_err(|e| format!("Failed to save full image: {}", e))?;
+
+    // Create & Save Small Thumbnail (Resize to 300px width, preserving aspect ratio)
+    let small_img = img.resize(300, 300, image::imageops::FilterType::Lanczos3);
+    small_img.save_with_format(&thumb_path, ImageFormat::Png)
+        .map_err(|e| format!("Failed to save small thumbnail: {}", e))?;
 
     Ok(ThumbnailResult {
         status: "success".to_string(),
         original_file: clip_path.to_string_lossy().to_string(),
-        thumbnail_path: output_path.to_string_lossy().to_string(),
+        thumbnail_path: full_path.to_string_lossy().to_string(), // Keep for backward compat
+        thumbnail_small_path: Some(thumb_path.to_string_lossy().to_string()),
+        thumbnail_full_path: Some(full_path.to_string_lossy().to_string()),
         timestamp,
         message: None,
     })
