@@ -61,71 +61,109 @@ pub fn update_watch_paths(
     let debounce_duration = Duration::from_secs(interval);
 
     std::thread::spawn(move || {
-        // Use String as key to ensure we compare normalized paths
         let mut last_processed: HashMap<String, Instant> = HashMap::new();
 
         println!("Watcher thread started.");
 
-        for res in rx {
-            match res {
-                Ok(event) => {
-                    for raw_path in event.paths {
-                        if raw_path.extension().and_then(|s| s.to_str()) == Some("clip") {
-                            
-                            // 1. Canonicalize to resolve symlinks/relative paths if possible
-                            let canonical_path = match fs::canonicalize(&raw_path) {
-                                Ok(p) => p,
-                                Err(_) => raw_path.clone(),
-                            };
-
-                            // 2. Normalize to string and strip Windows UNC prefix for consistent key
-                            let mut path_key = canonical_path.to_string_lossy().to_string();
-                            if path_key.starts_with("\\\\?\\") {
-                                path_key = path_key[4..].to_string();
-                            }
-
-                            // 3. Debounce check using the normalized key
-                            let now = Instant::now();
-                            if let Some(last_time) = last_processed.get(&path_key) {
-                                if now.duration_since(*last_time) < debounce_duration {
-                                    println!("Debouncing event for: {}", path_key);
-                                    continue;
-                                }
-                            }
-                            last_processed.insert(path_key.clone(), now);
-
-                            println!("Processing change for: {}", path_key);
-
-                            let output_dir = match app_handle.path().resolve("thumbnails", tauri::path::BaseDirectory::AppData) {
-                                Ok(p) => p,
-                                Err(e) => {
-                                    println!("Failed to resolve output dir: {}", e);
-                                    PathBuf::from("thumbnails")
-                                }
-                            };
-
-                            if !output_dir.exists() {
-                                let _ = fs::create_dir_all(&output_dir);
-                            }
-
-                            // Execute Native Rust Thumbnail Extraction
-                            let thumb_result = crate::thumbnail::extract_thumbnail(&canonical_path, &output_dir);
-
-                            match thumb_result {
-                                Ok(res) => {
-                                    println!("Thumbnail extracted: {:?}", res);
-                                    if let Err(e) = app_handle.emit("thumbnail-generated", res) {
-                                         println!("Failed to emit event: {}", e);
+        loop {
+            // Use recv_timeout for heartbeat
+            match rx.recv_timeout(Duration::from_secs(60)) {
+                Ok(res) => {
+                     // Wrap processing in catch_unwind to prevent thread death
+                    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        match res {
+                            Ok(event) => {
+                                println!("Watcher received event: {:?}", event.kind);
+                                for raw_path in event.paths {
+                                    if raw_path.extension().and_then(|s| s.to_str()) == Some("clip") {
+                                        
+                                        // 1. Canonicalize to resolve symlinks/relative paths if possible
+                                        let canonical_path = match fs::canonicalize(&raw_path) {
+                                            Ok(p) => p,
+                                            Err(_) => raw_path.clone(),
+                                        };
+            
+                                        // 2. Normalize to string and strip Windows UNC prefix for consistent key
+                                        let mut path_key = canonical_path.to_string_lossy().to_string();
+                                        if path_key.starts_with("\\\\?\\") {
+                                            path_key = path_key[4..].to_string();
+                                        }
+            
+                                        // 3. Debounce check
+                                        // CRITICAL FIX: We do NOT update the timestamp yet. 
+                                        // We only update it if extraction SUCCEEDS.
+                                        // This allows retries if the first "Create" event fails due to file locking.
+                                        let now = Instant::now();
+                                        if let Some(last_time) = last_processed.get(&path_key) {
+                                            if now.duration_since(*last_time) < debounce_duration {
+                                                println!("Debouncing event for: {}", path_key);
+                                                continue;
+                                            }
+                                        }
+            
+                                        println!("Processing change for: {}", path_key);
+            
+                                        let output_dir = match app_handle.path().resolve("thumbnails", tauri::path::BaseDirectory::AppData) {
+                                            Ok(p) => p,
+                                            Err(e) => {
+                                                println!("Failed to resolve output dir: {}", e);
+                                                PathBuf::from("thumbnails")
+                                            }
+                                        };
+            
+                                        if !output_dir.exists() {
+                                            let _ = fs::create_dir_all(&output_dir);
+                                        }
+            
+                                        // Execute Native Rust Thumbnail Extraction
+                                        let thumb_result = crate::thumbnail::extract_thumbnail(&canonical_path, &output_dir);
+            
+                                        match thumb_result {
+                                            Ok(res) => {
+                                                println!("Thumbnail extracted: {:?}", res);
+                                                // SUCCESS: Now we update the debounce timestamp
+                                                if let Err(e) = app_handle.emit("thumbnail-generated", res) {
+                                                     println!("Failed to emit event: {}", e);
+                                                }
+                                                return Some(path_key);
+                                            }
+                                            Err(e) => {
+                                                println!("Thumbnail extraction failed (will retry on next event): {}", e);
+                                                return None;
+                                            }
+                                        }
                                     }
                                 }
-                                Err(e) => {
-                                    println!("Thumbnail extraction failed: {}", e);
-                                }
+                                None
                             }
+                            Err(e) => {
+                                println!("watch error: {:?}", e);
+                                None
+                            }
+                        }
+                    }));
+
+                    match result {
+                        Ok(Some(success_key)) => {
+                            // Update timestamp only on success
+                            last_processed.insert(success_key, Instant::now());
+                        },
+                        Ok(None) => {
+                            // No successful extraction (filtered, debounced, or failed)
+                        },
+                        Err(e) => {
+                             println!("Watcher thread panicked: {:?}", e);
+                             // Thread continues!
                         }
                     }
                 }
-                Err(e) => println!("watch error: {:?}", e),
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                    println!("Watcher heartbeat: alive and waiting for events.");
+                }
+                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                    println!("Watcher channel disconnected. Stopping thread.");
+                    break;
+                }
             }
         }
         println!("Watcher thread stopped.");

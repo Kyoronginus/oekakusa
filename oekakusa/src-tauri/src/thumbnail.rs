@@ -113,3 +113,33 @@ pub fn extract_thumbnail(clip_path: &Path, output_dir: &Path) -> Result<Thumbnai
         message: None,
     })
 }
+
+#[tauri::command]
+pub fn delete_thumbnail_files(
+    thumbnail_path: String,
+    thumbnail_small_path: Option<String>,
+    thumbnail_full_path: Option<String>,
+) -> Result<(), String> {
+    println!("Deleting files: {:?}, {:?}, {:?}", thumbnail_path, thumbnail_small_path, thumbnail_full_path);
+    
+    // Attempt removal of primary path
+    if Path::new(&thumbnail_path).exists() {
+        fs::remove_file(&thumbnail_path).map_err(|e| e.to_string())?;
+    }
+
+    // Attempt removal of small path
+    if let Some(path) = thumbnail_small_path {
+        if Path::new(&path).exists() {
+             fs::remove_file(&path).map_err(|e| e.to_string())?;
+        }
+    }
+
+    // Attempt removal of full path
+    if let Some(path) = thumbnail_full_path {
+         if Path::new(&path).exists() {
+             fs::remove_file(&path).map_err(|e| e.to_string())?;
+        }
+    }
+
+    Ok(())
+}

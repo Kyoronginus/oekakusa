@@ -27,7 +27,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             watcher::update_watch_paths,
-            gif::export_gif
+            gif::export_gif,
+            thumbnail::delete_thumbnail_files
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

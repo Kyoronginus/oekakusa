@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { X, Calendar, Folder, Save } from "lucide-react";
+import { X, Calendar, Folder, Save, Trash2 } from "lucide-react";
 import { Commit } from "../../../hooks/useDashboardData";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile, readFile } from "@tauri-apps/plugin-fs";
 import { auth, db } from "../../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, deleteDoc } from "firebase/firestore";
+import { invoke } from "@tauri-apps/api/core";
 
 interface CommitDetailModalProps {
   isOpen: boolean;
@@ -21,8 +22,48 @@ const CommitDetailModal: React.FC<CommitDetailModalProps> = ({
   isTauri,
 }) => {
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   if (!isOpen || !commit) return null;
+
+  const handleDelete = async () => {
+    if (!commit) return;
+
+    try {
+      setDeleting(true);
+
+      // 1. Delete from Firestore
+      const user = auth.currentUser;
+      if (user && commit.id) {
+        await deleteDoc(doc(db, "users", user.uid, "commits", commit.id));
+      }
+
+      // 2. Delete local files (if in Tauri mode)
+      if (isTauri) {
+        try {
+          // Note: command name must verify against what we registered in Rust
+          await invoke("delete_thumbnail_files", {
+            thumbnailPath: commit.thumbnail_path, // Backend expects snake_case but invoke converts camelCase keys automatically? Verification: tauri usually expects camelCase args mapping to snake_case in Rust.
+            // Rust signature: thumbnail_path: String
+            // Invoke args: { thumbnailPath: ... } -> maps to thumbnail_path
+            thumbnailSmallPath: commit.thumbnail_small_path,
+            thumbnailFullPath: commit.thumbnail_full_path,
+          });
+        } catch (err) {
+          console.error("Failed to delete local files:", err);
+          // We continue even if local delete fails, to ensure UI is updated
+        }
+      }
+
+      onClose();
+      // Optional: Trigger a refresh if needed, but the live listener should handle it.
+    } catch (e) {
+      console.error("Failed to delete commit:", e);
+      alert("Failed to delete commit: " + e);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleSaveImage = async () => {
     if (!commit) return;
@@ -141,6 +182,7 @@ const CommitDetailModal: React.FC<CommitDetailModalProps> = ({
 
         <div className="p-6 bg-white border-t flex justify-between items-end">
           <div>
+            {/* ... Left side content ... */}
             <h2 className="text-2xl font-bold mb-2 text-gray-800 flex items-center gap-2">
               <span className="truncate">
                 {commit.path.split(/[\\/]/).pop()}
@@ -163,18 +205,33 @@ const CommitDetailModal: React.FC<CommitDetailModalProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={handleSaveImage}
-            disabled={saving}
-            className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex items-center gap-2 shadow-lg transition"
-          >
-            {saving ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            ) : (
-              <Save size={20} />
-            )}
-            Save Image
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleDelete}
+              disabled={deleting || saving}
+              className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 flex items-center gap-2 shadow-sm transition"
+            >
+              {deleting ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+              ) : (
+                <Trash2 size={20} />
+              )}
+              Delete
+            </button>
+
+            <button
+              onClick={handleSaveImage}
+              disabled={saving || deleting}
+              className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 flex items-center gap-2 shadow-lg transition"
+            >
+              {saving ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <Save size={20} />
+              )}
+              Save Image
+            </button>
+          </div>
         </div>
       </div>
     </div>
