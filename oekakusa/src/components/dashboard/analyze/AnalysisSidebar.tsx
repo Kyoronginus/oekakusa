@@ -2,6 +2,7 @@ import React from "react";
 import { Upload } from "lucide-react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { Commit } from "../../../hooks/useDashboardData";
+import ProgressiveImage from "../../common/ProgressiveImage";
 
 interface AnalysisSidebarProps {
   commits: Commit[];
@@ -52,14 +53,21 @@ const AnalysisSidebar: React.FC<AnalysisSidebarProps> = ({
               onClick={() => onSelectCommit(c)}
               className="cursor-pointer group relative aspect-video rounded overflow-hidden border border-gray-200 hover:ring-2 hover:ring-primary"
             >
-              <img
-                src={
+              <ProgressiveImage
+                lowResSrc={
+                  c.thumbnail_small_path
+                    ? isTauri
+                      ? convertFileSrc(c.thumbnail_small_path)
+                      : c.thumbnail_url
+                    : undefined
+                }
+                highResSrc={
                   c.thumbnail_url ||
                   (isTauri ? convertFileSrc(c.thumbnail_path) : "")
                 }
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 alt="recent"
-                onError={(e) => (e.currentTarget.style.display = "none")}
+                onError={(e: any) => (e.currentTarget.style.display = "none")}
               />
             </div>
           ))}

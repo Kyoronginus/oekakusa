@@ -3,11 +3,12 @@ import { Zap } from "lucide-react";
 
 import ContributionGraph from "./contributionGraph/ContributionGraph";
 import StatsOverview from "./stats/StatsOverview";
+import StatisticsScreen from "./stats/StatisticsScreen";
 import RecentCommits from "./RecentCommits";
 import ExportGifModal from "./ExportGifModal";
 import DashboardHeader from "./DashBoardHeader";
 import IllustrationGallery from "./Illustrations/IllustrationGallery";
-import DayCommitDetail from "./commits/DayCommitDetail";
+import DayCommitDetail from "./commits/CommitDetailperDay";
 import AnalysisModal from "./analyze/AnalysisModal";
 
 import { useDashboardData } from "../../hooks/useDashboardData";
@@ -29,6 +30,11 @@ const Dashboard: React.FC = () => {
 
   // Analysis Modal State
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+
+  // View State
+  const [currentView, setCurrentView] = useState<"dashboard" | "stats">(
+    "dashboard"
+  );
 
   // Custom Hooks
   // We get ALL commits here. We need to filter them for specific views.
@@ -58,6 +64,21 @@ const Dashboard: React.FC = () => {
     setSelectedDate(date);
     // Scroll to details? optional
   };
+
+  if (currentView === "stats") {
+    return (
+      <div className="min-h-screen bg-surface text-gray-800 p-8 relative">
+        <div className="w-full max-w-6xl mx-auto">
+          <StatisticsScreen
+            commits={commits}
+            xp={xp}
+            streak={streak}
+            onBack={() => setCurrentView("dashboard")}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-surface text-gray-800 p-8 relative">
@@ -116,6 +137,15 @@ const Dashboard: React.FC = () => {
               year={selectedYear}
               onDayClick={handleDayClick}
             />
+          </div>
+
+          <div className="border-t border-gray-100 mt-4 pt-2 flex justify-center pb-2">
+            <button
+              onClick={() => setCurrentView("stats")}
+              className="text-sm text-gray-600 font-medium hover:text-yellow-700 transition-colors"
+            >
+              Show More Statistics
+            </button>
           </div>
         </div>
 

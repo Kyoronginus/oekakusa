@@ -165,26 +165,30 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] bg-white bg-opacity-75 flex items-center justify-center p-4 text-white">
-      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl relative">
-        <div className="p-6 flex justify-between items-center bg-gray-400">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <Film className="text-purple-400" /> Export GIF Timelapse
-          </h2>
+    <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl animate-fade-in border border-gray-100/50">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
+              <Film className="text-purple-600 sm:w-6 sm:h-6" />
+              Export Timelapse
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Select a project to generate a GIF from your progress
+            </p>
+          </div>
           <button
             onClick={() => !exportingPath && onClose()}
-            className="text-gray-400 hover:text-white text-2xl leading-none disabled:opacity-50"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600 disabled:opacity-50"
             disabled={!!exportingPath}
           >
             &times;
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto bg-gray-200">
-          <p className="text-gray-300 mb-4">
-            Select an illustration project to generate a timelapse GIF:
-          </p>
-
+        {/* Content */}
+        <div className="p-6 overflow-y-auto bg-gray-50/50 flex-1">
           <div className="grid grid-cols-1 gap-4">
             {projects.map((proj) => {
               const sorted = [...proj.commits].sort(
@@ -197,11 +201,15 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({
               return (
                 <div
                   key={proj.path}
-                  className={`bg-gray-300 p-4 rounded-lg flex items-center gap-4 transition-colors ${
-                    isExportingOther ? "opacity-50" : "hover:bg-gray-650"
-                  }`}
+                  className={`bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-5 transition-all
+                    ${
+                      isExportingOther
+                        ? "opacity-50 blur-[1px]"
+                        : "hover:shadow-md hover:border-purple-200"
+                    }
+                  `}
                 >
-                  <div className="w-20 h-20 bg-gray-900 rounded overflow-hidden flex-shrink-0">
+                  <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
                     <img
                       src={
                         latest.thumbnail_url ||
@@ -213,37 +221,45 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({
                       alt={proj.name}
                     />
                   </div>
+
                   <div className="flex-1 min-w-0">
                     <h3
-                      className="font-bold text-lg truncate"
+                      className="font-bold text-gray-800 text-lg truncate mb-1"
                       title={proj.path}
                     >
                       {proj.name}
                     </h3>
-                    <p className="text-sm text-gray-400">
-                      {proj.commits.length} snapshots
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Last update:{" "}
-                      {new Date(latest.timestamp * 1000).toLocaleDateString()}
-                    </p>
+                    <div className="flex items-center gap-3 text-sm text-gray-500">
+                      <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-medium text-gray-600">
+                        {proj.commits.length} Frames
+                      </span>
+                      <span className="text-xs">
+                        Updated{" "}
+                        {new Date(latest.timestamp * 1000).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
+
                   <button
                     onClick={() => handleExportGif(proj.commits, proj.path)}
                     disabled={!!exportingPath}
-                    className={`px-4 py-2 rounded-lg font-medium shadow-lg whitespace-nowrap flex items-center gap-2
+                    className={`px-5 py-2.5 rounded-xl font-medium shadow-sm whitespace-nowrap flex items-center gap-2 text-sm transition-all
                        ${
                          isExportingThis
-                           ? "bg-purple-500 cursor-wait"
-                           : "bg-purple-600 hover:bg-purple-500"
+                           ? "bg-purple-100 text-purple-700 cursor-wait ring-1 ring-purple-200"
+                           : "bg-purple-600 text-white hover:bg-purple-700 hover:shadow active:scale-95"
                        }
-                       ${!!exportingPath ? "opacity-70 cursor-not-allowed" : ""}
+                       ${
+                         !!exportingPath && !isExportingThis
+                           ? "opacity-50 cursor-not-allowed"
+                           : ""
+                       }
                      `}
                   >
                     {isExportingThis ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        {progressMsg || "Processing..."}
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                        <span>{progressMsg || "Processing..."}</span>
                       </>
                     ) : (
                       "Create GIF"
@@ -252,21 +268,29 @@ const ExportGifModal: React.FC<ExportGifModalProps> = ({
                 </div>
               );
             })}
+
             {projects.length === 0 && (
-              <p className="text-center text-gray-500 py-8">
-                No illustrations found with history.
-              </p>
+              <div className="text-center py-12 px-4 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50">
+                <Film className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-gray-600">
+                  No Projects Found
+                </h3>
+                <p className="text-gray-500 text-sm mt-1">
+                  Start tracking your artwork to create timelapses.
+                </p>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="p-4 bg-gray-400 text-right">
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-100 bg-white flex justify-end">
           <button
             onClick={onClose}
             disabled={!!exportingPath}
-            className="px-4 py-2 text-gray-300 hover:text-white disabled:opacity-50"
+            className="px-6 py-2 rounded-lg text-gray-600 hover:bg-gray-100 font-medium transition-colors text-sm disabled:opacity-50"
           >
-            Cancel
+            Close
           </button>
         </div>
       </div>

@@ -22,6 +22,7 @@ const AnalysisModal: React.FC<AnalysisModalProps> = ({
     setActiveTab,
     selectedFile,
     previewUrl,
+    lowResPreviewUrl,
     loading,
     error,
     handleFileChange,
@@ -53,6 +54,7 @@ const AnalysisModal: React.FC<AnalysisModalProps> = ({
           setActiveTab={setActiveTab}
           selectedFile={selectedFile}
           previewUrl={previewUrl}
+          lowResPreviewUrl={lowResPreviewUrl}
           loading={
             loading || fibonacciValues.fibLoading || colorValues.colorLoading
           }

@@ -10,6 +10,7 @@ export const useAnalysis = (isOpen: boolean, isTauri: boolean) => {
   const [activeTab, setActiveTab] = useState<AnalysisTab>("fibonacci");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [lowResPreviewUrl, setLowResPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false); // Global loading for file selection
   const [error, setError] = useState<string | null>(null); // Global error
 
@@ -26,6 +27,7 @@ export const useAnalysis = (isOpen: boolean, isTauri: boolean) => {
   const resetState = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
+    setLowResPreviewUrl(null);
     setError(null);
     setLoading(false);
     fibonacciValues.resetFibonacci();
@@ -37,6 +39,7 @@ export const useAnalysis = (isOpen: boolean, isTauri: boolean) => {
       const file = e.target.files[0];
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
+      setLowResPreviewUrl(null);
       setError(null);
       // Reset sub-results
       fibonacciValues.setFibResult(null);
@@ -47,6 +50,17 @@ export const useAnalysis = (isOpen: boolean, isTauri: boolean) => {
   const selectCommitImage = async (commit: Commit) => {
     try {
       setLoading(true);
+      // Set low-res preview immediately if available
+      if (commit.thumbnail_small_path) {
+        setLowResPreviewUrl(
+          isTauri
+            ? convertFileSrc(commit.thumbnail_small_path)
+            : commit.thumbnail_url || null
+        );
+      } else {
+        setLowResPreviewUrl(commit.thumbnail_url || null);
+      }
+
       let file: File;
       let url: string = "";
 
@@ -95,6 +109,7 @@ export const useAnalysis = (isOpen: boolean, isTauri: boolean) => {
     setActiveTab,
     selectedFile,
     previewUrl,
+    lowResPreviewUrl, // Expose this
     loading,
     error,
     handleFileChange,

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { Commit } from "../../hooks/useDashboardData";
 import CommitDetailModal from "./commits/CommitDetailModal";
+import ProgressiveImage from "../common/ProgressiveImage";
 
 interface RecentCommitsProps {
   commits: Commit[];
@@ -26,16 +27,23 @@ const RecentCommits: React.FC<RecentCommitsProps> = ({ commits, isTauri }) => {
                 className="bg-gray-50 rounded-lg overflow-hidden group relative cursor-pointer hover:ring-2 hover:ring-primary transition shadow-sm border border-gray-200"
                 onClick={() => setSelectedCommit(commit)}
               >
-                <img
-                  src={
+                <ProgressiveImage
+                  lowResSrc={
+                    commit.thumbnail_small_path
+                      ? isTauri
+                        ? convertFileSrc(commit.thumbnail_small_path)
+                        : commit.thumbnail_url
+                      : undefined
+                  }
+                  highResSrc={
                     commit.thumbnail_url ||
                     (isTauri
                       ? convertFileSrc(commit.thumbnail_path)
                       : "https://placehold.co/400x300?text=Web+View")
                   }
                   alt="Thumbnail"
-                  className="w-full h-32 object-cover transition transform group-hover:scale-105"
-                  onError={(e) => {
+                  className="w-full h-32 object-cover transform group-hover:scale-105"
+                  onError={(e: any) => {
                     console.error("Image load failed:", commit.path);
                     e.currentTarget.src =
                       "https://placehold.co/400x300?text=Broken+Link";

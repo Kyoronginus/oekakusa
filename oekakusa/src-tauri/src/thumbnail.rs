@@ -105,7 +105,8 @@ pub fn extract_thumbnail(clip_path: &Path, output_dir: &Path) -> Result<Thumbnai
 
     Ok(ThumbnailResult {
         status: "success".to_string(),
-        original_file: clip_path.to_string_lossy().to_string(),
+        // combines the original file path and the path with limit bypass prefix
+        original_file: clip_path.to_string_lossy().trim_start_matches(r"\\?\").to_string(),
         thumbnail_path: full_path.to_string_lossy().to_string(), // Keep for backward compat
         thumbnail_small_path: Some(thumb_path.to_string_lossy().to_string()),
         thumbnail_full_path: Some(full_path.to_string_lossy().to_string()),

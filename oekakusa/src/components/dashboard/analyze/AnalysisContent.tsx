@@ -10,6 +10,7 @@ interface AnalysisContentProps {
   setActiveTab: (tab: AnalysisTab) => void;
   selectedFile: File | null;
   previewUrl: string | null;
+  lowResPreviewUrl?: string | null;
   loading: boolean;
   error: string | null;
 
@@ -32,6 +33,7 @@ const AnalysisContent: React.FC<AnalysisContentProps> = ({
   setActiveTab,
   selectedFile,
   previewUrl,
+  lowResPreviewUrl,
   loading,
   error,
   kValue,
@@ -86,9 +88,14 @@ const AnalysisContent: React.FC<AnalysisContentProps> = ({
           <div className="space-y-6">
             {/* Preview Area (Shared) */}
             <div className="flex justify-center bg-gray-100 rounded-lg p-4 border relative min-h-[300px] items-center">
-              {loading && (
+              {loading && !previewUrl && !lowResPreviewUrl && (
                 <div className="absolute inset-0 bg-white/70 z-10 flex items-center justify-center backdrop-blur-[2px]">
                   <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                </div>
+              )}
+              {loading && (previewUrl || lowResPreviewUrl) && (
+                <div className="absolute bottom-4 right-4 z-20 bg-white/90 p-2 rounded-full shadow-lg">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
                 </div>
               )}
 
@@ -105,9 +112,13 @@ const AnalysisContent: React.FC<AnalysisContentProps> = ({
                 />
               ) : (
                 <img
-                  src={previewUrl || ""}
+                  src={previewUrl || lowResPreviewUrl || ""}
                   alt="Preview"
-                  className="max-h-[50vh] object-contain shadow-lg"
+                  className={`max-h-[50vh] object-contain shadow-lg transition-all duration-500 ${
+                    !previewUrl && lowResPreviewUrl
+                      ? "blur-sm scale-95"
+                      : "blur-0 scale-100"
+                  }`}
                 />
               )}
             </div>

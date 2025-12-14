@@ -39,11 +39,39 @@ pub fn export_gif(app: AppHandle, image_paths: Vec<String>, output_path: Option<
     let _ = encoder.set_repeat(image::codecs::gif::Repeat::Infinite);
 
     for path_str in image_paths {
-        let img = image::open(&path_str).map_err(|e| format!("Failed to open {}: {}", path_str, e))?;
+        let path = std::path::Path::new(&path_str);
         
-        let rgba_img = img.into_rgba8();
+        let mut img_result = image::open(path);
+
+        // Fallback: If file not found, try appending "_full" to filename (legacy/mismatch handling)
+        if img_result.is_err() {
+             if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                 if let Some(parent) = path.parent() {
+                     if !stem.ends_with("_full") {
+                         let new_filename = format!("{}_full.png", stem);
+                         let new_path = parent.join(new_filename);
+                         if new_path.exists() {
+                             // println!("Fallback: Found image at {:?}", new_path);
+                             img_result = image::open(new_path);
+                         }
+                     }
+                 }
+             }
+        }
+
+        let img = match img_result {
+            Ok(i) => i,
+            Err(e) => {
+                println!("Failed to open image for GIF (skipping): {} - Error: {}", path_str, e);
+                continue;
+            }
+        };
         
-        // Delay is 500ms
+        // RESIZE: Scaling down to max 1200px width massively speeds up GIF encoding
+        let resized = img.resize(1200, 1200, image::imageops::FilterType::Triangle);  
+        let rgba_img = resized.into_rgba8();
+        
+        // gif delay is 500ms
         let frame = Frame::from_parts(rgba_img, 0, 0, Delay::from_saturating_duration(Duration::from_millis(500)));
         
         encoder.encode_frame(frame).map_err(|e| format!("Failed to encode frame: {}", e))?;
