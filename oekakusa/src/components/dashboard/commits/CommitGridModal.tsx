@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { X, Film } from "lucide-react";
 import { Commit } from "../../../hooks/useDashboardData";
 import { convertFileSrc } from "@tauri-apps/api/core";
@@ -13,13 +13,13 @@ interface CommitGridModalProps {
   isTauri: boolean;
 }
 
-const CommitGridModal: React.FC<CommitGridModalProps> = ({
+const CommitGridModal = ({
   isOpen,
   onClose,
   title,
   commits,
   isTauri,
-}) => {
+}: CommitGridModalProps) => {
   const [selectedCommit, setSelectedCommit] = useState<Commit | null>(null);
   const [showExportGif, setShowExportGif] = useState(false);
 

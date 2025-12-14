@@ -1,4 +1,3 @@
-import React from "react";
 import { ColorResult } from "../types";
 
 interface ColorPanelProps {
@@ -7,11 +6,11 @@ interface ColorPanelProps {
   loading: boolean;
 }
 
-const ColorPanel: React.FC<ColorPanelProps> = ({
+const ColorPanel = ({
   colorResults,
   analyzeColor,
   loading,
-}) => {
+}: ColorPanelProps) => {
   return (
     <div className="space-y-6">
       {!colorResults ? (

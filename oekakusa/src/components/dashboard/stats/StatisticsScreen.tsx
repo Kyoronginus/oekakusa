@@ -1,4 +1,3 @@
-import React from "react";
 import { ArrowLeft } from "lucide-react";
 import { Commit } from "../../../hooks/useDashboardData";
 import CommitTimeBarChart from "./CommitTimeBarChart";
@@ -11,12 +10,12 @@ interface StatisticsScreenProps {
   streak: number;
 }
 
-const StatisticsScreen: React.FC<StatisticsScreenProps> = ({
+const StatisticsScreen = ({
   commits,
   onBack,
   xp,
   streak,
-}) => {
+}: StatisticsScreenProps) => {
   return (
     <div className="space-y-8 animate-fade-in-up">
       <div className="flex items-center gap-4">

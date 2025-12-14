@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { Commit } from "../../../hooks/useDashboardData";
 import { Tooltip } from "react-tooltip";
 
@@ -6,7 +6,7 @@ interface CommitTimeBarChartProps {
   commits: Commit[];
 }
 
-const CommitTimeBarChart: React.FC<CommitTimeBarChartProps> = ({ commits }) => {
+const CommitTimeBarChart = ({ commits }: CommitTimeBarChartProps) => {
   const data = useMemo(() => {
     const hours = new Array(24).fill(0);
     commits.forEach((commit) => {

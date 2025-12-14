@@ -6,13 +6,13 @@ interface ProgressiveImageProps
   highResSrc: string;
 }
 
-const ProgressiveImage: React.FC<ProgressiveImageProps> = ({
+const ProgressiveImage = ({
   lowResSrc,
   highResSrc,
   className,
   alt,
   ...props
-}) => {
+}: ProgressiveImageProps) => {
   const [src, setSrc] = useState(lowResSrc || highResSrc);
   const [isLoaded, setIsLoaded] = useState(false);
 

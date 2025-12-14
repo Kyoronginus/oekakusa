@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import CalendarHeatmap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
 import { Tooltip } from "react-tooltip";
@@ -9,11 +9,11 @@ interface ContributionGraphProps {
   onDayClick: (date: string) => void;
 }
 
-const ContributionGraph: React.FC<ContributionGraphProps> = ({
+const ContributionGraph = ({
   values,
   year,
   onDayClick,
-}) => {
+}: ContributionGraphProps) => {
   const { startDate, endDate } = useMemo(() => {
     return {
       startDate: new Date(`${year}-01-01`),

@@ -15,7 +15,7 @@ import { useDashboardData } from "../../hooks/useDashboardData";
 import { useThumbnailListener } from "../../hooks/useThumbnailListener";
 import { getLocalYYYYMMDD } from "../../utils/dateUtils";
 
-const Dashboard: React.FC = () => {
+const Dashboard = () => {
   const [isTauri] = useState(() => {
     // @ts-ignore
     return !!(window.__TAURI__ || window.__TAURI_INTERNALS__);

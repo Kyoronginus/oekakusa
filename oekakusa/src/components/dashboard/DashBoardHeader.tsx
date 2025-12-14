@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebase";
 import { Activity, Film, Settings, LogOut, User } from "lucide-react";
@@ -9,10 +8,10 @@ interface DashboardHeaderProps {
   setShowAnalysisModal: (show: boolean) => void;
 }
 
-const DashboardHeader: React.FC<DashboardHeaderProps> = ({
+const DashboardHeader = ({
   setShowExportModal,
   setShowAnalysisModal,
-}) => {
+}: DashboardHeaderProps) => {
   const navigate = useNavigate();
   const { handleLogout } = useDashboardAuth();
   const user = auth.currentUser;

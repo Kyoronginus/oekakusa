@@ -1,18 +1,22 @@
-import React from 'react';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon } from "lucide-react";
 
 interface StatCardProps {
   icon: LucideIcon;
   label: string;
   value: string | number;
-  color: 'blue' | 'orange' | 'green';
+  color: "blue" | "orange" | "green";
 }
 
-export const StatCard: React.FC<StatCardProps> = ({ icon: Icon, label, value, color }) => {
+export const StatCard = ({
+  icon: Icon,
+  label,
+  value,
+  color,
+}: StatCardProps) => {
   const colorStyles = {
-    blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
-    orange: { bg: 'bg-orange-100', text: 'text-orange-600' },
-    green: { bg: 'bg-green-100', text: 'text-green-600' },
+    blue: { bg: "bg-blue-100", text: "text-blue-600" },
+    orange: { bg: "bg-orange-100", text: "text-orange-600" },
+    green: { bg: "bg-green-100", text: "text-green-600" },
   };
 
   const { bg, text } = colorStyles[color];

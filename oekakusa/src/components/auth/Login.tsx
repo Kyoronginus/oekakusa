@@ -7,7 +7,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Lock, Mail, UserPlus, LogIn } from "lucide-react";
 
-const Login: React.FC = () => {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);

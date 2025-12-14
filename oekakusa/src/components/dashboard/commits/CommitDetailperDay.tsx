@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { Commit } from "../../../hooks/useDashboardData";
 import CommitDetailModal from "./CommitDetailModal";
@@ -11,12 +11,12 @@ interface DayCommitDetailProps {
   onClose: () => void;
 }
 
-const DayCommitDetail: React.FC<DayCommitDetailProps> = ({
+const DayCommitDetail = ({
   date,
   commits,
   isTauri,
   onClose,
-}) => {
+}: DayCommitDetailProps) => {
   const [selectedCommit, setSelectedCommit] = useState<Commit | null>(null);
 
   // Parse date for display

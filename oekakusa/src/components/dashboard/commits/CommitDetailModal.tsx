@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { X, Calendar, Folder, Save, Trash2 } from "lucide-react";
 import { Commit } from "../../../hooks/useDashboardData";
 import { convertFileSrc } from "@tauri-apps/api/core";
@@ -15,12 +15,12 @@ interface CommitDetailModalProps {
   isTauri: boolean;
 }
 
-const CommitDetailModal: React.FC<CommitDetailModalProps> = ({
+const CommitDetailModal = ({
   isOpen,
   onClose,
   commit,
   isTauri,
-}) => {
+}: CommitDetailModalProps) => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 

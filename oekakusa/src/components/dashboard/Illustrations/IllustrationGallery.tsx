@@ -17,10 +17,10 @@ interface IllustrationGalleryProps {
   isTauri: boolean;
 }
 
-const IllustrationGallery: React.FC<IllustrationGalleryProps> = ({
+const IllustrationGallery = ({
   commits,
   isTauri,
-}) => {
+}: IllustrationGalleryProps) => {
   const [selectedIllustrationPath, setSelectedIllustrationPath] = useState<
     string | null
   >(null);

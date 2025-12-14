@@ -1,4 +1,3 @@
-import React from "react";
 import { Paintbrush, Flame, Zap } from "lucide-react";
 import { StatCard } from "./StatsComponents";
 
@@ -8,11 +7,7 @@ interface StatsOverviewProps {
   todaysCommits: number;
 }
 
-const StatsOverview: React.FC<StatsOverviewProps> = ({
-  xp,
-  streak,
-  todaysCommits,
-}) => {
+const StatsOverview = ({ xp, streak, todaysCommits }: StatsOverviewProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <StatCard

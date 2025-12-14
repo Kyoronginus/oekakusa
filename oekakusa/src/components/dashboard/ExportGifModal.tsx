@@ -16,12 +16,12 @@ interface ExportGifModalProps {
   isTauri: boolean;
 }
 
-const ExportGifModal: React.FC<ExportGifModalProps> = ({
+const ExportGifModal = ({
   isOpen,
   onClose,
   commits,
   isTauri,
-}) => {
+}: ExportGifModalProps) => {
   const [exportingPath, setExportingPath] = useState<string | null>(null);
   const [progressMsg, setProgressMsg] = useState<string>("");
   const [userExportPath, setUserExportPath] = useState<string | null>(null);

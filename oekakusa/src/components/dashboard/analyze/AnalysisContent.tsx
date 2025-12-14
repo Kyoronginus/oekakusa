@@ -1,4 +1,3 @@
-import React from "react";
 import { X, Palette, Calculator, ImageIcon } from "lucide-react";
 import { AnalysisTab, ColorResult } from "./types";
 import FibonacciPanel from "./fibonacci-detection/FibonacciPanel";
@@ -27,7 +26,7 @@ interface AnalysisContentProps {
   analyzeColor: () => void;
 }
 
-const AnalysisContent: React.FC<AnalysisContentProps> = ({
+const AnalysisContent = ({
   onClose,
   activeTab,
   setActiveTab,
@@ -44,7 +43,7 @@ const AnalysisContent: React.FC<AnalysisContentProps> = ({
   analyzeFibonacci,
   colorResults,
   analyzeColor,
-}) => {
+}: AnalysisContentProps) => {
   return (
     <div className="flex-1 flex flex-col bg-white">
       <div className="flex items-center justify-between p-4 border-b">

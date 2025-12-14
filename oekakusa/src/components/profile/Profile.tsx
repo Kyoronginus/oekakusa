@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, storage } from "../../firebase";
 import { updateProfile, sendPasswordResetEmail } from "firebase/auth";
@@ -8,7 +8,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { readFile } from "@tauri-apps/plugin-fs";
 
-const Profile: React.FC = () => {
+const Profile = () => {
   const navigate = useNavigate();
   const user = auth.currentUser;
 

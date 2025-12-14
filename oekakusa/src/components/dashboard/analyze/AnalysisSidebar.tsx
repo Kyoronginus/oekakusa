@@ -1,4 +1,3 @@
-import React from "react";
 import { Upload } from "lucide-react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { Commit } from "../../../hooks/useDashboardData";
@@ -11,12 +10,12 @@ interface AnalysisSidebarProps {
   isTauri: boolean;
 }
 
-const AnalysisSidebar: React.FC<AnalysisSidebarProps> = ({
+const AnalysisSidebar = ({
   commits,
   onSelectCommit,
   onFileChange,
   isTauri,
-}) => {
+}: AnalysisSidebarProps) => {
   return (
     <div className="w-1/3 bg-gray-50 border-r flex flex-col">
       <div className="p-4 border-b">

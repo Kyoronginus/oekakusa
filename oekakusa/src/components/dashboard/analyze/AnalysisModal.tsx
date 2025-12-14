@@ -1,4 +1,3 @@
-import React from "react";
 import { Commit } from "../../../hooks/useDashboardData";
 import AnalysisSidebar from "./AnalysisSidebar";
 import AnalysisContent from "./AnalysisContent";
@@ -11,12 +10,12 @@ interface AnalysisModalProps {
   isTauri: boolean;
 }
 
-const AnalysisModal: React.FC<AnalysisModalProps> = ({
+const AnalysisModal = ({
   isOpen,
   onClose,
   commits,
   isTauri,
-}) => {
+}: AnalysisModalProps) => {
   const {
     activeTab,
     setActiveTab,

@@ -1,5 +1,3 @@
-import React from "react";
-
 interface FibonacciPanelProps {
   kValue: string;
   setKValue: (val: string) => void;
@@ -9,14 +7,14 @@ interface FibonacciPanelProps {
   loading: boolean;
 }
 
-const FibonacciPanel: React.FC<FibonacciPanelProps> = ({
+const FibonacciPanel = ({
   kValue,
   setKValue,
   bWeight,
   setBWeight,
   analyzeFibonacci,
   loading,
-}) => {
+}: FibonacciPanelProps) => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-8">
