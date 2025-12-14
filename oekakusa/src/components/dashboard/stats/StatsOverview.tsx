@@ -1,13 +1,19 @@
 import { Paintbrush, Flame, Zap } from "lucide-react";
 import { StatCard } from "./StatsComponents";
+import { Commit } from "../../../hooks/useDashboardData";
+import { getLocalYYYYMMDD } from "../../../utils/dateUtils";
 
 interface StatsOverviewProps {
   xp: number;
   streak: number;
-  todaysCommits: number;
+  commits: Commit[];
 }
 
-const StatsOverview = ({ xp, streak, todaysCommits }: StatsOverviewProps) => {
+const StatsOverview = ({ xp, streak, commits }: StatsOverviewProps) => {
+  const todaysCommits = commits.filter(
+    (c) => getLocalYYYYMMDD(new Date(c.timestamp * 1000)) === getLocalYYYYMMDD()
+  ).length;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <StatCard

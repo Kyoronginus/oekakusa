@@ -99,13 +99,7 @@ const Dashboard = () => {
           setShowAnalysisModal={setShowAnalysisModal}
         />
 
-        <StatsOverview
-          xp={xp}
-          streak={streak}
-          todaysCommits={
-            heatmapValues.find((v) => v.date === getLocalYYYYMMDD())?.count || 0
-          }
-        />
+        <StatsOverview xp={xp} streak={streak} commits={commits} />
 
         <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
           <div className="flex justify-between items-center mb-4">

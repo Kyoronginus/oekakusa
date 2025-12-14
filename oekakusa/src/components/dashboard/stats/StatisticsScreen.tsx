@@ -35,7 +35,7 @@ const StatisticsScreen = ({
           </h1>
         </div>
 
-        <StatsOverview xp={xp} streak={streak} todaysCommits={0} />
+        <StatsOverview xp={xp} streak={streak} commits={commits} />
         <GenericBarChart
           title="Productivity by Hour"
           data={hourData}
