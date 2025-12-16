@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { convertFileSrc } from "@tauri-apps/api/core";
 import { Commit } from "../../hooks/useDashboardData";
 import CommitDetailModal from "./commits/CommitDetailModal";
-import ProgressiveImage from "../common/ProgressiveImage";
+import CommitItem from "./commits/CommitItem";
 
 interface RecentCommitsProps {
   commits: Commit[];
@@ -19,55 +18,14 @@ const RecentCommits = ({ commits, isTauri }: RecentCommitsProps) => {
           Recent Commits
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {commits.slice(0, 20).map((commit, index) => {
-            // Limit to recent 20
-            return (
-              <div
-                key={index}
-                className="bg-gray-50 rounded-lg overflow-hidden group relative cursor-pointer hover:ring-2 hover:ring-primary transition shadow-sm border border-gray-200"
-                onClick={() => setSelectedCommit(commit)}
-              >
-                <ProgressiveImage
-                  lowResSrc={
-                    commit.thumbnail_small_path
-                      ? isTauri
-                        ? convertFileSrc(commit.thumbnail_small_path)
-                        : commit.thumbnail_url
-                      : undefined
-                  }
-                  highResSrc={
-                    commit.thumbnail_url ||
-                    (isTauri
-                      ? convertFileSrc(commit.thumbnail_path)
-                      : "https://placehold.co/400x300?text=Web+View")
-                  }
-                  alt="Thumbnail"
-                  className="w-full h-32 object-cover transform group-hover:scale-105"
-                  onError={(e: any) => {
-                    console.error("Image load failed:", commit.path);
-                    e.currentTarget.src =
-                      "https://placehold.co/400x300?text=Broken+Link";
-                  }}
-                />
-                <div className="p-2">
-                  <p
-                    className="text-xs text-gray-700 truncate font-medium"
-                    title={commit.path}
-                  >
-                    {commit.path.split(/[\\/]/).pop()}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {new Date(commit.timestamp * 1000).toLocaleString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+          {commits.slice(0, 20).map((commit) => (
+            <CommitItem
+              key={commit.id || commit.timestamp} // fallback key
+              commit={commit}
+              isTauri={isTauri}
+              onClick={setSelectedCommit}
+            />
+          ))}
           {commits.length === 0 && (
             <p className="text-gray-400 col-span-full text-center py-8">
               No commits yet. Start drawing!

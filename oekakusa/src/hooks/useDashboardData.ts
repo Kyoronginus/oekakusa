@@ -18,6 +18,7 @@ export interface Commit {
   thumbnail_full_path?: string;
   timestamp: number;
   thumbnail_url?: string;
+  storage_path?: string;
 }
 
 export interface UserData {
