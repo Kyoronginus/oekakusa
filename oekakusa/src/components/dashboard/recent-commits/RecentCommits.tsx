@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Commit } from "../../hooks/useDashboardData";
-import CommitDetailModal from "./commits/CommitDetailModal";
-import CommitItem from "./commits/CommitItem";
+import { Commit } from "../../../hooks/useDashboardData";
+import CommitDetailModal from "../commits/CommitDetailModal";
+import CommitItem from "../commits/CommitItem";
 
 interface RecentCommitsProps {
   commits: Commit[];
@@ -18,7 +18,7 @@ const RecentCommits = ({ commits, isTauri }: RecentCommitsProps) => {
           Recent Commits
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {commits.slice(0, 20).map((commit) => (
+          {commits.slice(0, 8).map((commit) => (
             <CommitItem
               key={commit.id || commit.timestamp} // fallback key
               commit={commit}

@@ -1,7 +1,6 @@
-import { convertFileSrc } from "@tauri-apps/api/core";
 import { Commit } from "../../../hooks/useDashboardData";
 import ProgressiveImage from "../../common/ProgressiveImage";
-import { useFirebaseImage } from "../../../hooks/useFirebaseImage";
+import { useCommitImage } from "../../../hooks/useCommitImage";
 
 interface SidebarCommitItemProps {
   commit: Commit;
@@ -14,17 +13,7 @@ const SidebarCommitItem = ({
   isTauri,
   onSelect,
 }: SidebarCommitItemProps) => {
-  const { url: remoteLowResUrl } = useFirebaseImage(
-    commit.storage_path,
-    commit.thumbnail_url
-  );
-
-  const lowResSrc = remoteLowResUrl;
-
-  const highResSrc =
-    remoteLowResUrl ||
-    commit.thumbnail_url ||
-    (isTauri ? convertFileSrc(commit.thumbnail_path) : "");
+  const { lowResSrc, highResSrc } = useCommitImage(commit, isTauri);
 
   return (
     <div

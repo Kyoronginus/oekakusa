@@ -160,9 +160,9 @@ const CommitDetailModal = ({
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition"
+          className="absolute top-4 right-4 z-10 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white transition"
         >
-          <X size={24} />
+          <X size={20} />
         </button>
 
         <div className="flex-1 overflow-auto bg-gray-100 flex items-center justify-center p-4">

@@ -4,7 +4,7 @@ import { Zap } from "lucide-react";
 import ContributionGraph from "./contributionGraph/ContributionGraph";
 import StatsOverview from "./stats/StatsOverview";
 import StatisticsScreen from "./stats/StatisticsScreen";
-import RecentCommits from "./RecentCommits";
+import RecentCommits from "./recent-commits/RecentCommits";
 import ExportGifModal from "./ExportGifModal";
 import DashboardHeader from "./DashBoardHeader";
 import IllustrationGallery from "./Illustrations/IllustrationGallery";
