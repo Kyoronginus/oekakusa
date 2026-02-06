@@ -75,12 +75,17 @@ export const useKanbanData = () => {
       await updateDoc(itemRef, { status: newStatus });
     } catch (error) {
       console.error("Error updating kanban item status:", error);
-      // Revert on error (optional, relying on next snapshot usually fixes it but manual revert is safer)
     }
   };
 
   const updateItem = async (id: string, data: Partial<KanbanItemType>) => {
     if (!user) return;
+
+    // Optimistic update
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...data } : item)),
+    );
+
     try {
       const itemRef = doc(db, "users", user.uid, "kanban_items", id);
       await updateDoc(itemRef, data);
@@ -103,12 +108,7 @@ export const useKanbanData = () => {
     // Optimistic Update
     setItems(updatedItems);
 
-    // Batch update or individual updates
-    // Ideally use a batch, but for simplicity we iterate.
-    // We only strictly need to update items whose order index changed or matches the new list index
     try {
-      // Simple strategy: update all items in the list with their new index
-      // Filter to only those that changed? For <100 items, looping all is fine.
       const updates = updatedItems.map((item, index) => {
         const itemRef = doc(db, "users", user!.uid, "kanban_items", item.id);
         return updateDoc(itemRef, { order: index });

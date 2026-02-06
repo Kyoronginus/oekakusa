@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { auth, db } from "../../firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
+import { useUserSettings } from "../../hooks/useUserSettings";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -12,6 +13,9 @@ const Settings = () => {
   const [exportPath, setExportPath] = useState<string | null>(null);
   const [snapshotInterval, setSnapshotInterval] = useState<number>(5); // Default 5s
   const [loading, setLoading] = useState(true);
+
+  const { settings, updateSettings: updateUserSettings } = useUserSettings();
+  const [kanbanDeleteConfirm, setKanbanDeleteConfirm] = useState(true);
 
   const [isTauri, setIsTauri] = useState(false);
 
@@ -54,6 +58,12 @@ const Settings = () => {
     };
     loadSettings();
   }, [user, isTauri]);
+
+  useEffect(() => {
+    if (settings.confirmKanbanDelete !== undefined) {
+      setKanbanDeleteConfirm(settings.confirmKanbanDelete);
+    }
+  }, [settings]);
 
   const handleAddFolder = async () => {
     if (!isTauri) {
@@ -143,7 +153,7 @@ const Settings = () => {
           exportPath: exportPath || null,
           snapshotInterval: snapshotInterval,
         },
-        { merge: true }
+        { merge: true },
       );
 
       // 2. Update Rust Backend
@@ -153,6 +163,9 @@ const Settings = () => {
           interval: snapshotInterval,
         });
       }
+
+      // 3. Update User Settings Hook managed settings
+      await updateUserSettings({ confirmKanbanDelete: kanbanDeleteConfirm });
 
       alert("Settings saved and watchers updated!");
     } catch (e) {
@@ -278,6 +291,27 @@ const Settings = () => {
                   <Trash2 size={18} />
                 </button>
               )}
+            </div>
+          </div>
+
+          <div className="mb-6 border-t pt-6">
+            <h2 className="text-lg font-bold mb-4 text-primary">
+              Kanban Board Settings
+            </h2>
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="kanbanConfirm"
+                checked={kanbanDeleteConfirm}
+                onChange={(e) => setKanbanDeleteConfirm(e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+              />
+              <label
+                htmlFor="kanbanConfirm"
+                className="text-gray-700 select-none"
+              >
+                Show confirmation dialog when deleting tasks
+              </label>
             </div>
           </div>
 

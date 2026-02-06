@@ -18,6 +18,7 @@ import EditItemModal from "./EditItemModal";
 import ConfirmModal from "./ConfirmModal";
 
 import { useKanbanData } from "../../../hooks/useKanbanData";
+import { useUserSettings } from "../../../hooks/useUserSettings";
 
 const KanbanBoard = () => {
   const {
@@ -28,6 +29,7 @@ const KanbanBoard = () => {
     deleteItem,
     reorderItems,
   } = useKanbanData();
+  const { settings, updateSettings } = useUserSettings();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<KanbanItemType | null>(null);
   const [deletingItem, setDeletingItem] = useState<{
@@ -36,7 +38,11 @@ const KanbanBoard = () => {
   } | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 2,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
@@ -141,12 +147,21 @@ const KanbanBoard = () => {
   };
 
   const handleDeleteItem = (id: string, title: string) => {
-    setDeletingItem({ id, title });
+    if (settings.confirmKanbanDelete) {
+      setDeletingItem({ id, title });
+    } else {
+      deleteItem(id);
+    }
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = async (dontShowAgain: boolean) => {
     if (deletingItem) {
       await deleteItem(deletingItem.id);
+
+      if (dontShowAgain) {
+        await updateSettings({ confirmKanbanDelete: false });
+      }
+
       setDeletingItem(null);
     }
   };
@@ -163,12 +178,16 @@ const KanbanBoard = () => {
     setEditingItem(null);
   };
 
+  const handleInlineUpdate = async (id: string, newTitle: string) => {
+    await updateItem(id, { title: newTitle });
+  };
+
   const activeItem = activeId
     ? items.find((i: KanbanItemType) => i.id === activeId)
     : null;
 
   return (
-    <div className="p-4">
+    <div className="py-4">
       {/* Board Container */}
       <DndContext
         sensors={sensors}
@@ -177,7 +196,7 @@ const KanbanBoard = () => {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex flex-col md:grid md:grid-cols-3 gap-6 w-full pb-4">
+        <div className="flex overflow-x-auto h-full w-full gap-6 pb-4 items-start">
           <KanbanColumn
             id="todo"
             title="To-do"
@@ -185,6 +204,7 @@ const KanbanBoard = () => {
             color="bg-red-50 text-red-700"
             onAddItem={() => handleAddItem("todo")}
             onEdit={handleEditItem}
+            onInlineUpdate={handleInlineUpdate}
             onDelete={handleDeleteItem}
           />
           <KanbanColumn
@@ -194,6 +214,7 @@ const KanbanBoard = () => {
             color="bg-blue-50 text-blue-700"
             onAddItem={() => handleAddItem("in-progress")}
             onEdit={handleEditItem}
+            onInlineUpdate={handleInlineUpdate}
             onDelete={handleDeleteItem}
           />
           <KanbanColumn
@@ -203,6 +224,7 @@ const KanbanBoard = () => {
             color="bg-green-50 text-green-700"
             onAddItem={() => handleAddItem("done")}
             onEdit={handleEditItem}
+            onInlineUpdate={handleInlineUpdate}
             onDelete={handleDeleteItem}
           />
         </div>
@@ -227,6 +249,7 @@ const KanbanBoard = () => {
           title="Delete Task"
           message={`Are you sure you want to delete "${deletingItem.title}"? This action cannot be undone.`}
           isDestructive={true}
+          showDontShowAgain={true}
           confirmLabel="Delete"
           onConfirm={confirmDelete}
           onCancel={() => setDeletingItem(null)}

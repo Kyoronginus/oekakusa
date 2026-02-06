@@ -130,6 +130,7 @@ const Dashboard = () => {
 
         {/* Kanban Board */}
         <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 h-full">
+          <h2 className="text-xl font-semibold text-gray-800">To Do</h2>
           <KanbanBoard />
         </div>
         {/* Feature 2: Day Details (conditionally rendered) */}

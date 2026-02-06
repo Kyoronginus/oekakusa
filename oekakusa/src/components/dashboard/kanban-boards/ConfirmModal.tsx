@@ -1,14 +1,16 @@
+import { useState } from "react";
 import { X, AlertTriangle } from "lucide-react";
 
 type Props = {
   isOpen: boolean;
   title: string;
   message: string;
-  onConfirm: () => void;
+  onConfirm: (dontShowAgain: boolean) => void;
   onCancel: () => void;
   confirmLabel?: string;
   cancelLabel?: string;
   isDestructive?: boolean;
+  showDontShowAgain?: boolean;
 };
 
 const ConfirmModal = ({
@@ -20,7 +22,10 @@ const ConfirmModal = ({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   isDestructive = false,
+  showDontShowAgain = false,
 }: Props) => {
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+
   if (!isOpen) return null;
 
   return (
@@ -43,6 +48,24 @@ const ConfirmModal = ({
           <p className="text-sm text-gray-500 mb-6">{message}</p>
         </div>
 
+        {showDontShowAgain && (
+          <div className="flex items-center gap-2 mb-4 justify-center">
+            <input
+              type="checkbox"
+              id="dontShow"
+              checked={dontShowAgain}
+              onChange={(e) => setDontShowAgain(e.target.checked)}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label
+              htmlFor="dontShow"
+              className="text-sm text-gray-600 select-none"
+            >
+              Don't show me this again
+            </label>
+          </div>
+        )}
+
         <div className="flex gap-3">
           <button
             onClick={onCancel}
@@ -51,7 +74,7 @@ const ConfirmModal = ({
             {cancelLabel}
           </button>
           <button
-            onClick={onConfirm}
+            onClick={() => onConfirm(dontShowAgain)}
             className={`flex-1 px-4 py-2 text-white rounded-lg transition font-medium shadow-sm ${
               isDestructive
                 ? "bg-red-600 hover:bg-red-700"

@@ -14,6 +14,7 @@ type Props = {
   count?: number;
   onAddItem?: () => void;
   onEdit?: (item: KanbanItemType) => void;
+  onInlineUpdate?: (id: string, newTitle: string) => void;
   onDelete?: (id: string, title: string) => void;
 };
 
@@ -25,6 +26,7 @@ const KanbanColumn = ({
   count,
   onAddItem,
   onEdit,
+  onInlineUpdate,
   onDelete,
 }: Props) => {
   const { setNodeRef } = useDroppable({ id });
@@ -63,6 +65,7 @@ const KanbanColumn = ({
               key={item.id}
               item={item}
               onEdit={onEdit}
+              onInlineUpdate={onInlineUpdate}
               onDelete={onDelete}
             />
           ))}
