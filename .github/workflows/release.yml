@@ -3,6 +3,8 @@ on:
   push:
     tags:
       - "v*"
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -42,6 +44,32 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Get version
+        id: get_version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Generate Tag Name
+        id: tag_name
+        shell: bash
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "tag_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+            echo "release_name=App ${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            VERSION="${{ steps.get_version.outputs.version }}"
+            SHA="${{ steps.get_version.outputs.short_sha }}"
+            TAG="v${VERSION}-dev-${SHA}"
+            echo "tag_name=$TAG" >> $GITHUB_OUTPUT
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+            echo "release_name=App $TAG" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build the app
         uses: tauri-apps/tauri-action@v0
         env:
@@ -57,9 +85,9 @@ jobs:
           VITE_FIBONACCI_API_URL: ${{ secrets.VITE_FIBONACCI_API_URL }}
           VITE_COLOR_API_URL: ${{ secrets.VITE_COLOR_API_URL }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "App v__VERSION__"
+          tagName: ${{ steps.tag_name.outputs.tag_name }}
+          releaseName: ${{ steps.tag_name.outputs.release_name }}
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
-          prerelease: false
+          prerelease: ${{ steps.tag_name.outputs.prerelease }}
           projectPath: oekakusa
