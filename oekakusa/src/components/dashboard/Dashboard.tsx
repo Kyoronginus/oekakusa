@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Zap } from "lucide-react";
 
 import ContributionGraph from "./contributionGraph/ContributionGraph";
@@ -10,30 +10,23 @@ import DashboardHeader from "./DashBoardHeader";
 import IllustrationGallery from "./Illustrations/IllustrationGallery";
 import DayCommitDetail from "./commits/CommitDetailperDay";
 import AnalysisModal from "./analyze/AnalysisModal";
+import KanbanBoard from "./kanban-boards/KanbanBoard";
 
 import { useDashboardData } from "../../hooks/useDashboardData";
 import { useThumbnailListener } from "../../hooks/useThumbnailListener";
-import { getLocalYYYYMMDD } from "../../utils/dateUtils";
+import { useTauri } from "../../hooks/useTauri";
+import { useDashboardFiltering } from "../../hooks/useDashboardFiltering";
 
 const Dashboard = () => {
-  const [isTauri] = useState(() => {
-    // @ts-ignore
-    return !!(window.__TAURI__ || window.__TAURI_INTERNALS__);
-  });
+  const isTauri = useTauri();
   const [showExportModal, setShowExportModal] = useState(false);
-
-  // Feature 1: Year Selector State
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
-  // Feature 2: Selected Date for Day Detail
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // Analysis Modal State
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
 
   // View State
   const [currentView, setCurrentView] = useState<"dashboard" | "stats">(
-    "dashboard"
+    "dashboard",
   );
 
   // Custom Hooks
@@ -41,23 +34,14 @@ const Dashboard = () => {
   const { commits, xp, streak, heatmapValues } = useDashboardData();
   useThumbnailListener(isTauri);
 
-  // Compute available years from commits
-  const availableYears = React.useMemo(() => {
-    const years = new Set<number>();
-    years.add(new Date().getFullYear()); // Always include current year
-    commits.forEach((c) => {
-      years.add(new Date(c.timestamp * 1000).getFullYear());
-    });
-    return Array.from(years).sort((a, b) => b - a); // Descending
-  }, [commits]);
-
-  // Derived: Commits for the selected date
-  const selectedDateCommits = React.useMemo(() => {
-    if (!selectedDate) return [];
-    return commits.filter(
-      (c) => getLocalYYYYMMDD(new Date(c.timestamp * 1000)) === selectedDate
-    );
-  }, [selectedDate, commits]);
+  const {
+    selectedYear,
+    setSelectedYear,
+    selectedDate,
+    setSelectedDate,
+    availableYears,
+    selectedDateCommits,
+  } = useDashboardFiltering(commits);
 
   // Handle Day Click from Graph
   const handleDayClick = (date: string) => {
@@ -101,6 +85,7 @@ const Dashboard = () => {
 
         <StatsOverview xp={xp} streak={streak} commits={commits} />
 
+        {/* Activity and Contribution Graph */}
         <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-800">
@@ -143,6 +128,10 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Kanban Board */}
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 h-full">
+          <KanbanBoard />
+        </div>
         {/* Feature 2: Day Details (conditionally rendered) */}
         {selectedDate && (
           <div className="animate-fade-in-up">
