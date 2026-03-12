@@ -102,6 +102,72 @@ export const useDashboardData = () => {
       setHeatmapValues(
         Object.entries(counts).map(([date, count]) => ({ date, count }))
       );
+
+      // Auto-recalculate lost XP and Streak if user document was reset
+      if (fetchedCommits.length > 0) {
+        // If xp is 0 (or less than it should be) despite having commits, we fix it
+        const expectedXp = fetchedCommits.length * 100;
+
+        // Only run this recalculation if xp is legitimately wrong by a lot (e.g. 0)
+        // We do this by checking the current state xp or reading the doc once.
+        // It's safer to just do a one-off check when commits load
+        import("firebase/firestore").then(async ({ getDoc, updateDoc }) => {
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            const currentXp = data.xp || 0;
+            if (currentXp === 0 && expectedXp > 0) {
+              console.log("Recalculating lost user data from commits...");
+              // Calculate streak from history
+              let calculatedStreak = 0;
+              let lastRecordDate = null;
+
+              // fetchedCommits is ordered by timestamp desc
+              const todayStr = getLocalYYYYMMDD();
+              const datesAsc = fetchedCommits
+                .map(c => getLocalYYYYMMDD(new Date(c.timestamp * 1000)))
+                .reverse(); // oldest to newest
+
+              // simple streak calculation
+              for (const d of datesAsc) {
+                if (!lastRecordDate) {
+                  calculatedStreak = 1;
+                  lastRecordDate = d;
+                } else if (d !== lastRecordDate) {
+                  const prevDate = new Date(lastRecordDate);
+                  const currDate = new Date(d);
+                  const diffTime = Math.abs(currDate.getTime() - prevDate.getTime());
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                  if (diffDays === 1) {
+                    calculatedStreak += 1;
+                  } else {
+                    calculatedStreak = 1; // broken streak
+                  }
+                  lastRecordDate = d;
+                }
+              }
+
+              // If last commit wasn't today or yesterday, streak is actually 0 now
+              if (lastRecordDate) {
+                const todayDate = new Date(todayStr);
+                const lastDateObj = new Date(lastRecordDate);
+                const diffTime = Math.abs(todayDate.getTime() - lastDateObj.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays > 1) {
+                  calculatedStreak = 0;
+                }
+              }
+
+              await updateDoc(userDocRef, {
+                xp: expectedXp,
+                streak: calculatedStreak,
+                lastCommitDate: fetchedCommits[0] ? getLocalYYYYMMDD(new Date(fetchedCommits[0].timestamp * 1000)) : null
+              });
+            }
+          }
+        });
+      }
     });
 
     return () => {

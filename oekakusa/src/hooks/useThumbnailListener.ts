@@ -3,7 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { readFile } from "@tauri-apps/plugin-fs";
 import { auth, db, storage } from "../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, setDoc } from "firebase/firestore";
 import { Commit, UserData } from "./useDashboardData";
 import { getLocalYYYYMMDD } from "../utils/dateUtils";
 
@@ -37,9 +37,8 @@ export const useThumbnailListener = (isTauri: boolean) => {
               console.log("Reading thumbnail file:", payload.thumbnail_path);
               const fileBytes = await readFile(payload.thumbnail_path);
 
-              storagePath = `users/${user.uid}/thumbnails/${
-                payload.timestamp
-              }_${payload.thumbnail_path.split(/[\\/]/).pop()}`;
+              storagePath = `users/${user.uid}/thumbnails/${payload.timestamp
+                }_${payload.thumbnail_path.split(/[\\/]/).pop()}`;
               const storageRef = ref(storage, storagePath);
 
               const metadata = {
@@ -98,11 +97,11 @@ export const useThumbnailListener = (isTauri: boolean) => {
                 }
               }
 
-              await updateDoc(userDocRef, {
+              await setDoc(userDocRef, {
                 xp: currentXP + 100,
                 streak: newStreak,
                 lastCommitDate: today,
-              });
+              }, { merge: true });
 
               console.log("Commit saved effectively!");
             } catch (dbError) {
