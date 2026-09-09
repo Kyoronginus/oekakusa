@@ -1,10 +1,31 @@
-.Illustration2bu.clip
-.oekakusa/vscode
-.oekakusa/node_modules
-.oekakusa/src-tauri/target
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Frontend builds
+frontend/dist/
+frontend/src-tauri/target/
+frontend/.vscode/
+
+# Backend builds & Firebase logs
+backend/lib/
+backend/.firebase/
+backend/firebase-debug.log
+backend/firebase-debug.*.log
+
+# Environment files / secrets
+.env
+*.env
+frontend/.env
+backend/.env
+backend/*-adminsdk-*.json
+
+# Clip Studio & local generated assets
 *.clip
+.Illustration2bu.clip
 thumbnails/
 gifs/
-
-#oekakusa
-oekakusa/.env

@@ -2,9 +2,9 @@
 
 Oekakusa ("Drawing Grass") is a desktop application that tracks your illustration progress in CLIP STUDIO PAINT (`.clip`) and visualizes it as a GitHub-style contribution graph. It turns every save into a commit, helping you maintain motivation by filling up the graph.
 
-![Dashboard Screenshot](readme-images/dashboard.png)
-![Fibonacci Detection](readme-images/fibonacci-detection.png)
-![Color Palette Analysis](readme-images/color-analysis.png)
+![Dashboard Screenshot](docs/images/dashboard.png)
+![Fibonacci Detection](docs/images/fibonacci-detection.png)
+![Color Palette Analysis](docs/images/color-analysis.png)
 
 ## Features
 
@@ -50,6 +50,7 @@ If you want to setup the desktop application with your own firebase key and buil
     ```bash
     git clone https://github.com/yourusername/oekakusa.git
     cd oekakusa
+    cd frontend
     npm install
     ```
 
